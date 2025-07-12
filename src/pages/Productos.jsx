@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import LogoutButton from '../components/LogoutButton';
+import API from '../services/api';
 
 function Productos() {
   const [productos, setProductos] = useState([]);
@@ -9,7 +10,7 @@ function Productos() {
     const fetchProductos = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:3000/api/productos', {
+        const res = await API.get('/productos', {
           headers: {
             Authorization: `Bearer ${token}`
           }

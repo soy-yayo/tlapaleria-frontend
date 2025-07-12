@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
+import API from '../services/api';
+
 import { useNavigate } from 'react-router-dom';
 
 function LoginForm() {
@@ -11,7 +12,7 @@ function LoginForm() {
     e.preventDefault(); // evita recargar la página
 
     try {
-      const res = await axios.post('http://localhost:3000/api/login', {
+      const res = await API.post('/login', {
         usuario,
         contraseña
       });
