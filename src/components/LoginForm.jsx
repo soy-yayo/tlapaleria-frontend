@@ -25,25 +25,37 @@ function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Iniciar Sesión</h2>
-      <input
-        type="text"
-        placeholder="Usuario"
-        value={usuario}
-        onChange={(e) => setUsuario(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={contraseña}
-        onChange={(e) => setContraseña(e.target.value)}
-        required
-      />
-      <button type="submit">Entrar</button>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <h2 style={{ textAlign: 'center' }}>Iniciar Sesión</h2>
+      <label>
+        Usuario:
+        <input
+          type="text"
+          value={usuario}
+          onChange={(e) => setUsuario(e.target.value)}
+          required
+        />
+      </label>
+
+      <label>
+        Contraseña:
+        <input
+          type="password"
+          value={contraseña}
+          onChange={(e) => setContraseña(e.target.value)}
+          required
+        />
+      </label>
+
+      <button
+        type="submit"
+        className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+      >
+        Entrar
+      </button>
     </form>
   );
+
 }
 
 export default LoginForm;
