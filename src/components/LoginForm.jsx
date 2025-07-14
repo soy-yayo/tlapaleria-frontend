@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import API from '../services/api';
-
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 function LoginForm() {
@@ -18,32 +18,39 @@ function LoginForm() {
       });
 
       localStorage.setItem('token', res.data.token); // guarda token
+      toast.success('Inicio de sesión exitoso');
       navigate('/productos'); // redirige a página de productos
     } catch (err) {
-      alert('Error al iniciar sesión');
+      toast.error('Error al iniciar sesión');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <h2 style={{ textAlign: 'center' }}>Iniciar Sesión</h2>
-      <label>
-        Usuario:
+    <form onSubmit={handleSubmit} 
+    className='border border-gray-300 rounded p-4 mx-auto mt-10 max-w-md bg-white shadow-lg flex flex-col gap-2'
+    >
+      <h2 className='text-2xl font-bold text-center mb-4'>
+        Iniciar Sesión
+      </h2>
+      <label className='flex flex-col mb-2'>
+        Usuario:   
         <input
           type="text"
           value={usuario}
           onChange={(e) => setUsuario(e.target.value)}
           required
+          className='border border-gray-300 rounded mr-0.5'
         />
       </label>
 
-      <label>
+      <label className='flex flex-col mb-2'>
         Contraseña:
         <input
           type="password"
           value={contraseña}
           onChange={(e) => setContraseña(e.target.value)}
           required
+          className='border border-gray-300 rounded'
         />
       </label>
 
