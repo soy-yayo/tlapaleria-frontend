@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function LogoutButton() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    toast.success('Sesión cerrada exitosamente');
-    localStorage.removeItem('token'); // elimina el token
+    localStorage.removeItem('token'); 
+    toast.success('Sesión cerrada correctamente');
     navigate('/'); // redirige al login
   };
 

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import API from '../services/api';
 
 function AgregarProducto() {
   const navigate = useNavigate();
@@ -11,10 +12,24 @@ function AgregarProducto() {
     ubicacion: '',
     stock_maximo: '',
     cantidad_stock: '',
-    proveedor: '',
+    proveedor_id: '',
     precio_compra: '',
     precio_venta: ''
   });
+  const [proveedores, setProveedores] = useState([]);
+
+  useEffect(() => {
+    const fetchProveedores = async () => {
+      try {
+        const res = await API.get('/proveedores');
+        setProveedores(res.data);
+      } catch (err) {
+        toast.error('Error al cargar proveedores');
+      }
+    };
+
+    fetchProveedores();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,7 +40,7 @@ function AgregarProducto() {
     const token = localStorage.getItem('token');
 
     try {
-      await axios.post('http://localhost:3000/api/productos', form, {
+      await API.post('/productos', form, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Producto agregado correctamente');
@@ -45,7 +60,6 @@ function AgregarProducto() {
           ['ubicacion', 'Ubicación'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
-          ['proveedor', 'Proveedor'],
           ['precio_compra', 'Precio de compra'],
           ['precio_venta', 'Precio de venta']
         ].map(([name, label]) => (
@@ -61,6 +75,24 @@ function AgregarProducto() {
             />
           </div>
         ))}
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Proveedor:</label>
+          <select
+            name="proveedor_id"
+            value={form.proveedor_id}
+            onChange={handleChange}
+            required
+            className="w-full border border-gray-300 rounded px-3 py-2"
+          >
+            <option value="">Seleccione un proveedor</option>
+            {proveedores.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <button
           type="submit"
