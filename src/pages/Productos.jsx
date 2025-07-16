@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import LogoutButton from '../components/LogoutButton';
 import API from '../services/api';
 import { Link } from 'react-router-dom';
+import handleEliminar from '../components/HandleEliminar';
 
 function Productos() {
   const [productos, setProductos] = useState([]);
@@ -50,26 +51,36 @@ function Productos() {
         </thead>
         <tbody>
           {productos.map(p => (
-            <tr key={p.id}>
+            <tr key={p.id} className="border-b border-gray-200 hover:bg-gray-100">
               {/* <td>{p.id}</td> */}
               <td>{p.codigo}</td>
               <td>{p.descripcion}</td>
               <td className={p.cantidad_stock === 0 ? 'text-red-500 font-bold' : 'text-green-500 font-bold'}>
                 {p.cantidad_stock === 0 ? (
-                  <Link 
-                    to={`/productos/editar/${p.id}`}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                  >
-                    Editar
-                  </Link>
+                  <span className="flex items-center">
+                    <Link 
+                      to={`/productos/editar/${p.id}`}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                    >
+                      Editar 
+                    </Link>
+                    <button
+                      onClick={() => handleEliminar(p.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded ml-2"
+                    >
+                      Eliminar
+                    </button>
+                  </span>
                 ) : (
                   p.cantidad_stock
                 )}
               </td>
+              
               <td>${p.precio_venta}</td>
             </tr>
           ))}
         </tbody>
+
       </table>
     </div>
   );
