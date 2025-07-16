@@ -5,6 +5,7 @@ import PrivateRoute from './components/PrivateRoute';
 import AgregarProducto from './pages/AgregarProducto';
 import Proveedores from './pages/Proveedores';
 import NavBar from './pages/NavBar';
+import EditarProducto from './pages/EditarProducto';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -37,6 +38,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Proveedores />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/productos/editar/:id"
+            element={
+              <PrivateRoute>
+                <EditarProducto />
               </PrivateRoute>
             }
           />

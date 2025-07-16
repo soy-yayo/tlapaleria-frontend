@@ -35,13 +35,13 @@ function Productos() {
         + Agregar producto
       </Link>
       <LogoutButton />
-      <h1 className='text-grey-100'>Productos</h1>
-      <p className='center'>Lista de productos disponibles:</p>
+      <h1>Productos</h1>
+      <p>Lista de productos disponibles:</p>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+      <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
         <thead>
-          <tr style={{ backgroundColor: '#f0f0f0' }}>
-            <th>ID</th>
+          <tr className="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+            {/* <th>ID</th> */}
             <th>Código</th>
             <th>Descripción</th>
             <th>Stock</th>
@@ -51,11 +51,20 @@ function Productos() {
         <tbody>
           {productos.map(p => (
             <tr key={p.id}>
-              <td>{p.id}</td>
+              {/* <td>{p.id}</td> */}
               <td>{p.codigo}</td>
               <td>{p.descripcion}</td>
-              <td style={{ color: p.cantidad_stock === 0 ? 'red' : 'green', fontWeight: 'bold' }}>
-                {p.cantidad_stock}
+              <td className={p.cantidad_stock === 0 ? 'text-red-500 font-bold' : 'text-green-500 font-bold'}>
+                {p.cantidad_stock === 0 ? (
+                  <Link 
+                    to={`/productos/editar/${p.id}`}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                  >
+                    Editar
+                  </Link>
+                ) : (
+                  p.cantidad_stock
+                )}
               </td>
               <td>${p.precio_venta}</td>
             </tr>
