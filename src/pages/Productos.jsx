@@ -29,13 +29,13 @@ function Productos() {
   return (
 
     <div className='container mx-auto p-4 bg-white shadow-md rounded-lg'>
-      <Link
+      {/* <Link
         to="/productos/nuevo"
         className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
       >
         + Agregar producto
       </Link>
-      <LogoutButton />
+      <LogoutButton /> */}
       <h1>Productos</h1>
       <p>Lista de productos disponibles:</p>
 
@@ -47,11 +47,12 @@ function Productos() {
             <th>Descripción</th>
             <th>Stock</th>
             <th>Precio Venta</th>
+            <th>Proveedor</th>
           </tr>
         </thead>
         <tbody>
           {productos.map(p => (
-            <tr key={p.id} className="border-b border-gray-200 hover:bg-gray-100">
+            <tr key={p.id} className="border-b border-gray-200 hover:bg-gray-100 text-center">
               {/* <td>{p.id}</td> */}
               <td>{p.codigo}</td>
               <td>{p.descripcion}</td>
@@ -77,6 +78,7 @@ function Productos() {
               </td>
               
               <td>${p.precio_venta}</td>
+              <td>{p.proveedor_id}</td>
             </tr>
           ))}
         </tbody>
