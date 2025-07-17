@@ -112,7 +112,7 @@ function Productos() {
                 </td>
 
                 <td>${p.precio_venta}</td>
-                <td>{p.proveedor_id}</td>
+                <td>{p.nombre_proveedor}</td>
               </tr>
             ))}
           </tbody>
