@@ -15,7 +15,8 @@ function EditarProducto() {
     cantidad_stock: '',
     proveedor_id: '',
     precio_compra: '',
-    precio_venta: ''
+    precio_venta: '',
+    imagen: ''
   });
 
   const [proveedores, setProveedores] = useState([]);
@@ -104,13 +105,24 @@ function EditarProducto() {
             ))}
           </select>
         </div>
-
+        <div>
+          <label className="block text-sm font-medium mb-1">Imagen (URL):</label>
+          <input
+            type="text"
+            name="imagen"
+            value={form.imagen}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="https://..."
+          />
+        </div>
         <button
           type="submit"
           className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
         >
           Guardar cambios
         </button>
+
       </form>
     </div>
   );

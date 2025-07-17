@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import handleEliminar from '../components/HandleEliminar';
 
 function Productos() {
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productos, setProductos] = useState([]);
 
   useEffect(() => {
@@ -50,6 +51,7 @@ function Productos() {
   }
 
 
+
   return (
     <>
       <div className="mb-4">
@@ -73,10 +75,10 @@ function Productos() {
         <h1>Productos</h1>
         <p>Lista de productos disponibles:</p>
 
-        <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-          <thead>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* <thead>
             <tr className="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
-              {/* <th>ID</th> */}
+              <th>ID</th>
               <th>Código</th>
               <th>Descripción</th>
               <th>Stock</th>
@@ -84,40 +86,72 @@ function Productos() {
               <th>Proveedor</th>
             </tr>
           </thead>
-          <tbody>
-            {productosFiltrados.map(p => (
-              <tr key={p.id} className="border-b border-gray-200 hover:bg-gray-100 text-center">
-                {/* <td>{p.id}</td> */}
-                <td>{p.codigo}</td>
-                <td>{p.descripcion}</td>
-                <td className={p.cantidad_stock === 0 ? 'text-red-500 font-bold' : 'text-green-500 font-bold'}>
-                  {p.cantidad_stock === 0 ? (
-                    <span className="flex items-center">
-                      <Link
-                        to={`/productos/editar/${p.id}`}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                      >
-                        Editar
-                      </Link>
-                      <button
-                        onClick={() => handleEliminar(p.id)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded ml-2"
-                      >
-                        Eliminar
-                      </button>
-                    </span>
-                  ) : (
-                    p.cantidad_stock
-                  )}
-                </td>
+          <tbody> */}
+          {productosFiltrados.map(p => (
+            <div
+              key={p.id}
+              className="bg-white shadow rounded p-4 cursor-pointer hover:shadow-md transition"
+              onClick={() => setProductoSeleccionado(p)}
+            >
+              <img
+                src={p.imagen || 'https://via.placeholder.com/150'}
+                alt={p.descripcion}
+                className="w-full h-40 object-cover mb-2 rounded"
+              />
+              <h3>{p.descripcion}</h3>
+              <p className="text-sm text-gray-600">Código: {p.codigo}</p>
+              <p className="text-sm text-gray-600">Stock: {p.cantidad_stock}</p>
+              <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
+              <p className="text-sm text-gray-600 font-bold">Precio: ${p.precio_venta}</p>
+              {p.cantidad_stock === 0 && (
+              <div className="flex mt-2 gap-2">
+                <Link
+                  to={`/productos/editar/${p.id}`}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Editar
+                </Link>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEliminar(p.id);
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                >
+                  Eliminar
+                </button>
+              </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-                <td>${p.precio_venta}</td>
-                <td>{p.nombre_proveedor}</td>
-              </tr>
-            ))}
-          </tbody>
+        {productoSeleccionado && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded shadow-lg w-full max-w-md relative">
+              <button
+                className="absolute top-2 right-3 text-xl"
+                onClick={() => setProductoSeleccionado(null)}
+              >
+                &times;
+              </button>
+              <img
+                src={productoSeleccionado.imagen || 'https://via.placeholder.com/300'}
+                alt="producto"
+                className="w-full h-52 object-cover rounded mb-4"
+              />
+              <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
+              <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
+              <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
+              <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
+              <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
+              <p><strong>Precio venta:</strong> ${productoSeleccionado.precio_venta}</p>
+              <p><strong>Precio compra:</strong> ${productoSeleccionado.precio_compra}</p>
+            </div>
+          </div>
+        )}
 
-        </table>
       </div>
     </>
   );
