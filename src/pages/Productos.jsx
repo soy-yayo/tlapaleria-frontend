@@ -7,6 +7,9 @@ import handleEliminar from '../components/HandleEliminar';
 function Productos() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productos, setProductos] = useState([]);
+  const [proveedorFiltro, setProveedorFiltro] = useState('');
+  const [ubicacionFiltro, setUbicacionFiltro] = useState('');
+
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -28,14 +31,44 @@ function Productos() {
   }, []);
 
   const [busqueda, setBusqueda] = useState('');
+  const proveedoresUnicos = [...new Set(productos.map(p => p.nombre_proveedor))];
+  const ubicacionesUnicas = [...new Set(productos.map(p => p.ubicacion))];
 
   const productosFiltrados = productos.filter(p =>
-    p.codigo.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+    (proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro) &&
+    (ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro) &&
+    (
+      p.codigo.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+    )
   );
   if (productosFiltrados.length === 0) {
     return (
       <>
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <select
+            value={proveedorFiltro}
+            onChange={(e) => setProveedorFiltro(e.target.value)}
+            className="border px-3 py-2 rounded w-full sm:w-1/2"
+          >
+            <option value="">Todos los proveedores</option>
+            {proveedoresUnicos.map((prov) => (
+              <option key={prov} value={prov}>{prov}</option>
+            ))}
+          </select>
+
+          <select
+            value={ubicacionFiltro}
+            onChange={(e) => setUbicacionFiltro(e.target.value)}
+            className="border px-3 py-2 rounded w-full sm:w-1/2"
+          >
+            <option value="">Todas las ubicaciones</option>
+            {ubicacionesUnicas.map((ubi) => (
+              <option key={ubi} value={ubi}>{ubi}</option>
+            ))}
+          </select>
+        </div>
+
         <div className="mb-4">
           <input
             type="text"
@@ -54,6 +87,30 @@ function Productos() {
 
   return (
     <>
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <select
+          value={proveedorFiltro}
+          onChange={(e) => setProveedorFiltro(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-1/2"
+        >
+          <option value="">Todos los proveedores</option>
+          {proveedoresUnicos.map((prov) => (
+            <option key={prov} value={prov}>{prov}</option>
+          ))}
+        </select>
+
+        <select
+          value={ubicacionFiltro}
+          onChange={(e) => setUbicacionFiltro(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-1/2"
+        >
+          <option value="">Todas las ubicaciones</option>
+          {ubicacionesUnicas.map((ubi) => (
+            <option key={ubi} value={ubi}>{ubi}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="mb-4">
         <input
           type="text"
@@ -94,7 +151,7 @@ function Productos() {
               onClick={() => setProductoSeleccionado(p)}
             >
               <img
-                src={p.imagen || 'https://via.placeholder.com/150'}
+                src={p.imagen}
                 alt={p.descripcion}
                 className="w-full h-40 object-cover mb-2 rounded"
               />
@@ -104,24 +161,24 @@ function Productos() {
               <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
               <p className="text-sm text-gray-600 font-bold">Precio: ${p.precio_venta}</p>
               {p.cantidad_stock === 0 && (
-              <div className="flex mt-2 gap-2">
-                <Link
-                  to={`/productos/editar/${p.id}`}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Editar
-                </Link>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEliminar(p.id);
-                  }}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                >
-                  Eliminar
-                </button>
-              </div>
+                <div className="flex mt-2 gap-2">
+                  <Link
+                    to={`/productos/editar/${p.id}`}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Editar
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEliminar(p.id);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               )}
             </div>
           ))}
@@ -137,7 +194,7 @@ function Productos() {
                 &times;
               </button>
               <img
-                src={productoSeleccionado.imagen || 'https://via.placeholder.com/300'}
+                src={productoSeleccionado.imagen}
                 alt="producto"
                 className="w-full h-52 object-cover rounded mb-4"
               />
