@@ -231,12 +231,15 @@ function Productos() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleEliminar(p.id);
+                      handleEliminar(p.id, (idEliminado) => {
+                        setProductos((prev) => prev.filter(prod => prod.id !== idEliminado));
+                      });
                     }}
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                   >
                     Eliminar
                   </button>
+
                 </div>
               )}
             </div>
