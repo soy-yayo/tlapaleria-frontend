@@ -3,13 +3,17 @@ import LogoutButton from '../components/LogoutButton';
 import API from '../services/api';
 import { Link } from 'react-router-dom';
 import handleEliminar from '../components/HandleEliminar';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 
 function Productos() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productos, setProductos] = useState([]);
   const [proveedorFiltro, setProveedorFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
-
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -84,6 +88,49 @@ function Productos() {
   }
 
 
+  const exportarPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text("Inventario de productos", 14, 10);
+
+    const tabla = productosFiltrados.map(p => [
+      p.codigo,
+      p.descripcion,
+      p.ubicacion,
+      p.cantidad_stock,
+      `$${p.precio_venta}`,
+      p.nombre_proveedor
+    ]);
+
+    autoTable(doc, {
+      head: [['Código', 'Descripción', 'Ubicación', 'Stock', 'Precio Venta', 'Proveedor']],
+      body: tabla,
+      startY: 20,
+      styles: { fontSize: 10 },
+    });
+
+    doc.save("inventario.pdf");
+  };
+
+  const exportarExcel = () => {
+    const worksheetData = productosFiltrados.map(p => ({
+      Código: p.codigo,
+      Descripción: p.descripcion,
+      Ubicación: p.ubicacion,
+      Stock: p.cantidad_stock,
+      'Precio Venta': p.precio_venta,
+      Proveedor: p.nombre_proveedor
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventario');
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const file = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(file, 'inventario.xlsx');
+  };
+
 
   return (
     <>
@@ -131,6 +178,18 @@ function Productos() {
       <LogoutButton /> */}
         <h1>Productos</h1>
         <p>Lista de productos disponibles:</p>
+        <button
+          onClick={exportarPDF}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded mb-4"
+        >
+          Exportar a PDF
+        </button>
+        <button
+          onClick={exportarExcel}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mb-4 ml-2"
+        >
+          Exportar a Excel
+        </button>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {/* <thead>
@@ -208,7 +267,6 @@ function Productos() {
             </div>
           </div>
         )}
-
       </div>
     </>
   );
