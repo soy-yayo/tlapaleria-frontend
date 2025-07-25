@@ -18,6 +18,7 @@ function LoginForm() {
       });
 
       localStorage.setItem('token', res.data.token); // guarda token
+      localStorage.setItem('usuario', JSON.stringify(res.data.usuario)); // guarda usuario
       toast.success('Inicio de sesión exitoso');
       navigate('/productos'); // redirige a página de productos
     } catch (err) {
@@ -26,14 +27,14 @@ function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} 
-    className='border border-gray-300 rounded p-4 mx-auto mt-10 max-w-md bg-white shadow-lg flex flex-col gap-2'
+    <form onSubmit={handleSubmit}
+      className='border border-gray-300 rounded p-4 mx-auto mt-10 max-w-md bg-white shadow-lg flex flex-col gap-2'
     >
       <h2 className='text-2xl font-bold text-center mb-4'>
         Iniciar Sesión
       </h2>
       <label className='flex flex-col mb-2'>
-        Usuario:   
+        Usuario:
         <input
           type="text"
           value={usuario}

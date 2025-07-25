@@ -6,6 +6,7 @@ function LogoutButton() {
 
   const handleLogout = () => {
     localStorage.removeItem('token'); 
+    localStorage.removeItem('usuario'); 
     toast.success('Sesión cerrada correctamente');
     navigate('/'); // redirige al login
   };
