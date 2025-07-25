@@ -10,6 +10,7 @@ import EditarProducto from './pages/EditarProducto';
 import NuevaVenta from './pages/NuevaVenta';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import HistorialVentas from './components/HistorialVentas';
 
 
 function LayoutPrivado({ children }) {
@@ -60,6 +61,13 @@ function App() {
             </PrivateRoute>
             } />
 
+
+          <Route path="/ventas/historial" element={
+            <PrivateRoute>
+              <LayoutPrivado><HistorialVentas /></LayoutPrivado>
+            </PrivateRoute>
+          } />
+          
         </Routes>
       </BrowserRouter>
       <ToastContainer position="top-center" />

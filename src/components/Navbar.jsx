@@ -23,6 +23,9 @@ function Navbar() {
         <Link to="/ventas/nueva" className="font-bold hover:underline">
           Nueva Venta
         </Link>
+        <Link to="/ventas/historial" className="font-bold hover:underline">
+          Historial de Ventas
+        </Link>
 
       </div>
       <div className="flex items-center gap-4">
