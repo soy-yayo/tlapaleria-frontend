@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import API from '../services/api';
 import { toast } from 'react-toastify';
+import TicketModal from './TicketModal';
 
 function HistorialVentas() {
   const [ventas, setVentas] = useState([]);
@@ -10,6 +11,11 @@ function HistorialVentas() {
   const [filtroPago, setFiltroPago] = useState('');
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
+
+  const [showModal, setShowModal] = useState(false);
+  const [ventaActual, setVentaActual] = useState(null);
+  const [productosVenta, setProductosVenta] = useState([]);
+
 
   useEffect(() => {
     const fetchVentas = async () => {
@@ -27,18 +33,33 @@ function HistorialVentas() {
     fetchVentas();
   }, []);
 
-  const verDetalle = async (id) => {
+  // const verDetalle = async (id) => {
+  //   try {
+  //     const token = localStorage.getItem('token');
+  //     const res = await API.get(`/ventas/${id}`, {
+  //       headers: { Authorization: `Bearer ${token}` }
+  //     });
+  //     setDetalles(res.data);
+  //     setVentaSeleccionada(id);
+  //   } catch (err) {
+  //     toast.error('Error al cargar detalle de la venta');
+  //   }
+  // };
+
+  const verTicket = async (venta) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await API.get(`/ventas/${id}`, {
+      const res = await API.get(`/ventas/${venta.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setDetalles(res.data);
-      setVentaSeleccionada(id);
+      setVentaActual(venta);
+      setProductosVenta(res.data);
+      setShowModal(true);
     } catch (err) {
-      toast.error('Error al cargar detalle de la venta');
+      toast.error('Error al cargar detalles del ticket');
     }
   };
+
 
   const ventasFiltradas = ventas.filter((v) => {
     const fechaVenta = new Date(v.fecha);
@@ -115,10 +136,10 @@ function HistorialVentas() {
               <td className="p-2">{v.usuario}</td>
               <td className="p-2">
                 <button
-                  onClick={() => verDetalle(v.id)}
+                  onClick={() => verTicket(v)}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
                 >
-                  Ver detalle
+                  Ver ticket
                 </button>
               </td>
             </tr>
@@ -151,6 +172,14 @@ function HistorialVentas() {
           </table>
         </div>
       )}
+      {showModal && ventaActual && (
+        <TicketModal
+          venta={ventaActual}
+          productos={productosVenta}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+
     </div>
   );
 }
