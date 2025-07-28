@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import API from '../services/api';
 import { toast } from 'react-toastify';
+import TicketModal from '../components/TicketModal';
 
 function NuevaVenta() {
   const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [ticket, setTicket] = useState([]);
   const [formaPago, setFormaPago] = useState('Efectivo');
+
+  const [mostrarTicket, setMostrarTicket] = useState(false);
+  const [ventaFinalizada, setVentaFinalizada] = useState(null);
+  const [productosVendidos, setProductosVendidos] = useState([]);
+
 
   const token = localStorage.getItem('token');
 
@@ -64,18 +70,34 @@ function NuevaVenta() {
     }
 
     const token = localStorage.getItem('token');
-    const usuarioId = JSON.parse(localStorage.getItem('usuario')).id;
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
 
     try {
       const res = await API.post('/ventas', {
         forma_pago: formaPago,
         productos: ticket,
-        usuario_id: usuarioId
+        usuario_id: usuario.id
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      toast.success(`Venta registrada con ID ${res.data.ventaId}`);
+      const ventaId = res.data.ventaId;
+
+      const detalles = await API.get(`/ventas/${ventaId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setVentaFinalizada({
+        id: ventaId,
+        fecha: new Date(),
+        forma_pago: formaPago,
+        total: total.toFixed(2),
+        usuario: usuario.nombre
+      });
+
+      setProductosVendidos(detalles.data);
+      setMostrarTicket(true);
+      toast.success(`Venta registrada con ID ${ventaId}`);
       setTicket([]);
       setBusqueda('');
     } catch (error) {
@@ -83,6 +105,7 @@ function NuevaVenta() {
       toast.error('Error al registrar la venta');
     }
   };
+
 
 
   return (
@@ -185,6 +208,14 @@ function NuevaVenta() {
       >
         Confirmar Venta
       </button>
+      {mostrarTicket && ventaFinalizada && (
+        <TicketModal
+          venta={ventaFinalizada}
+          productos={productosVendidos}
+          onClose={() => setMostrarTicket(false)}
+        />
+      )}
+
 
     </div>
   );
