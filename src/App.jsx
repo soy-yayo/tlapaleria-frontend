@@ -11,7 +11,7 @@ import NuevaVenta from './pages/NuevaVenta';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import HistorialVentas from './components/HistorialVentas';
-
+import RegistroUsuario from './pages/RegistrarUsuario';
 
 function LayoutPrivado({ children }) {
   return (
@@ -37,7 +37,14 @@ function App() {
               </PrivateRoute>
             }
           />
-
+          <Route
+            path='/usuarios'
+            element={
+              <PrivateRoute>
+                <LayoutPrivado><RegistroUsuario /></LayoutPrivado>
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/productos/nuevo"
             element={

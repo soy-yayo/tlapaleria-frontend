@@ -17,6 +17,9 @@ function Navbar() {
         <Link to="/productos" className="font-bold hover:underline">
           Inicio
         </Link>
+        <Link to={"/usuarios"} className='font-bold hover:underline'>
+        Registar usuario
+        </Link>
         <Link to="/productos/nuevo" className="font-bold hover:underline">
           Agregar producto
         </Link>
