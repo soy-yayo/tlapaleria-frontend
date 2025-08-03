@@ -18,8 +18,15 @@ function AgregarProducto() {
     imagen: ''
   });
   const [proveedores, setProveedores] = useState([]);
+ 
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
 
   useEffect(() => {
+    if (usuario.rol !== 'admin') {
+      navigate('/denegado');
+      return;
+    }
+
     const fetchProveedores = async () => {
       try {
         const res = await API.get('/proveedores');

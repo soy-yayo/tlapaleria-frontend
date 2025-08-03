@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import API from '../services/api';
 
 function Proveedores() {
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+
   const [proveedores, setProveedores] = useState([]);
 
   useEffect(() => {
+    if (usuario.rol !== 'admin') {
+      navigate('/denegado');
+      return;
+    }
     const fetchProveedores = async () => {
       try {
         const res = await API.get('/proveedores');

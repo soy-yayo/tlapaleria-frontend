@@ -13,15 +13,14 @@ function RegistrarUsuario() {
   });
 
   const navigate = useNavigate();
-  const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
 
   useEffect(() => {
-    if (usuarioLogueado.rol !== 'admin') {
-      toast.error('Acceso no autorizado');
-      navigate('/productos');
+    if (usuario.rol !== 'admin') {
+      navigate('/denegado');
       return;
     }
-  }, [usuarioLogueado, navigate]);
+  }, [usuario, navigate]);
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };

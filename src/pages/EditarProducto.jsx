@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 function EditarProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
 
   const [form, setForm] = useState({
     codigo: '',
@@ -22,6 +24,11 @@ function EditarProducto() {
   const [proveedores, setProveedores] = useState([]);
 
   useEffect(() => {
+    if (usuario.rol !== 'admin') {
+      navigate('/denegado');
+      return;
+    }
+
     const fetchProductoYProveedores = async () => {
       try {
         const token = localStorage.getItem('token');

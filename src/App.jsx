@@ -14,6 +14,7 @@ import HistorialVentas from './components/HistorialVentas';
 import RegistroUsuario from './pages/RegistrarUsuario';
 import Usuarios from './pages/Usuarios';
 import EditarUsuario from './pages/EditarUsuario';
+import AccesoDenegado from './components/AccesoDenegado';
 
 function LayoutPrivado({ children }) {
   return (
@@ -31,6 +32,10 @@ function App() {
         {/* <NavBar /> */}
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path='/denegado' element={
+            <AccesoDenegado/>
+            }
+          />
           <Route
             path="/usuarios"
             element={
