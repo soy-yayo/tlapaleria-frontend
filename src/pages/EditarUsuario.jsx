@@ -1,62 +1,73 @@
-import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import API from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-function RegistrarUsuario() {
-
+function EditarUsuario() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     nombre: '',
     usuario: '',
-    contraseña: '',
     rol: 'ventas',
   });
 
-  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
   const usuarioLogueado = JSON.parse(localStorage.getItem('usuario'));
 
   useEffect(() => {
     if (usuarioLogueado.rol !== 'admin') {
       toast.error('Acceso no autorizado');
-      navigate('/productos');
+      navigate('/');
       return;
     }
-  }, [usuarioLogueado, navigate]);
+
+    const cargarUsuario = async () => {
+      try {
+        const res = await API.get(`/usuarios/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setForm(res.data);
+      } catch (error) {
+        toast.error('Error al cargar usuario');
+      }
+    };
+
+    cargarUsuario();
+  }, [id]);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
 
     try {
-      await API.post('/usuarios', form, {
+      await API.put(`/usuarios/${id}`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast.success('Usuario registrado correctamente');
-      navigate('/productos');
-    } catch (err) {
-      console.error(err);
-      toast.error('Error al registrar el usuario');
+      toast.success('Usuario actualizado');
+      navigate('/usuarios');
+    } catch (error) {
+      toast.error('Error al actualizar usuario');
     }
   };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white shadow-md mt-10 rounded">
-      <h2 className="text-xl font-bold mb-4 text-center">Registrar nuevo usuario</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">Editar usuario</h2>
       <form onSubmit={handleSubmit} className="grid gap-4">
 
         {[
           ['nombre', 'Nombre completo'],
           ['usuario', 'Usuario'],
-          ['contraseña', 'Contraseña']
         ].map(([name, label]) => (
           <div key={name}>
             <label className="block text-sm font-medium mb-1">{label}:</label>
             <input
-              type={name === 'contraseña' ? 'password' : 'text'}
+              type="text"
               name={name}
               value={form[name]}
               onChange={handleChange}
@@ -84,11 +95,11 @@ function RegistrarUsuario() {
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
-          Registrar
+          Guardar cambios
         </button>
       </form>
     </div>
   );
 }
 
-export default RegistrarUsuario;
+export default EditarUsuario;

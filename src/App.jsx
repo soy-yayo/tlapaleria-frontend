@@ -12,6 +12,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import HistorialVentas from './components/HistorialVentas';
 import RegistroUsuario from './pages/RegistrarUsuario';
+import Usuarios from './pages/Usuarios';
+import EditarUsuario from './pages/EditarUsuario';
 
 function LayoutPrivado({ children }) {
   return (
@@ -30,18 +32,30 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route
-            path="/productos"
+            path="/usuarios"
             element={
               <PrivateRoute>
-                <LayoutPrivado><Productos /></LayoutPrivado>
+                <LayoutPrivado><Usuarios /></LayoutPrivado>
               </PrivateRoute>
             }
           />
           <Route
-            path='/usuarios'
+            path='/usuarios/nuevo'
             element={
               <PrivateRoute>
                 <LayoutPrivado><RegistroUsuario /></LayoutPrivado>
+              </PrivateRoute>
+            }
+          />
+          <Route path="/usuarios/editar/:id" element={
+            <PrivateRoute>
+              <LayoutPrivado><EditarUsuario /></LayoutPrivado>
+            </PrivateRoute>} />
+          <Route
+            path="/productos"
+            element={
+              <PrivateRoute>
+                <LayoutPrivado><Productos /></LayoutPrivado>
               </PrivateRoute>
             }
           />
@@ -53,7 +67,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/productos/editar/:id"
             element={
@@ -62,19 +75,18 @@ function App() {
               </PrivateRoute>
             }
           />
+
           <Route path="/ventas/nueva" element={
             <PrivateRoute>
               <LayoutPrivado><NuevaVenta /></LayoutPrivado>
             </PrivateRoute>
-            } />
-
-
+          } />
           <Route path="/ventas/historial" element={
             <PrivateRoute>
               <LayoutPrivado><HistorialVentas /></LayoutPrivado>
             </PrivateRoute>
           } />
-          
+
         </Routes>
       </BrowserRouter>
       <ToastContainer position="top-center" />
