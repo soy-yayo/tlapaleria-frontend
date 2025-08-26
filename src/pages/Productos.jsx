@@ -234,7 +234,7 @@ function Productos() {
               <h3>{p.descripcion}</h3>
               <p className="text-sm text-gray-600">Código: {p.codigo}</p>
               <p className="text-sm text-gray-600">Stock: {p.cantidad_stock}</p>
-              <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
+              {/* <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p> */}
               <p className="text-sm text-gray-600 font-bold">Precio: ${p.precio_venta}</p>
               {/* {p.cantidad_stock === 0 && ( */}
                 <div className="flex mt-2 gap-2">
@@ -279,9 +279,9 @@ function Productos() {
               <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
               <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
               <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
-              <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
-              <p><strong>Precio venta:</strong> ${productoSeleccionado.precio_venta}</p>
-              <p><strong>Precio compra:</strong> ${productoSeleccionado.precio_compra}</p>
+              {/* <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p> */}
+              <p><strong>Precio:</strong> ${productoSeleccionado.precio_venta}</p>
+              {/* <p><strong>Precio compra:</strong> ${productoSeleccionado.precio_compra}</p> */}
             </div>
           </div>
         )}
