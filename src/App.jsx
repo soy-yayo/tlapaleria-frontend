@@ -5,7 +5,7 @@ import PrivateRoute from './components/PrivateRoute';
 import AgregarProducto from './pages/AgregarProducto';
 // import Proveedores from './pages/Proveedores';
 // import NavBar from './pages/NavBar';
-import Navbar from './components/NavBar';
+import NavBar from './components/NavBar';
 import EditarProducto from './pages/EditarProducto';
 import NuevaVenta from './pages/NuevaVenta';
 import { ToastContainer } from 'react-toastify';
@@ -19,7 +19,7 @@ import AccesoDenegado from './components/AccesoDenegado';
 function LayoutPrivado({ children }) {
   return (
     <>
-      <Navbar />
+      <NavBar />
       <main className="p-4">{children}</main>
     </>
   );
