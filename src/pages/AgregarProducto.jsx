@@ -14,9 +14,9 @@ function AgregarProducto() {
     cantidad_stock: '',
     proveedor_id: '',
     precio_compra: '',
-    precio_venta: '',
-    imagen: ''
+    precio_venta: ''
   });
+  const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
  
   const usuario = JSON.parse(localStorage.getItem('usuario'));
@@ -43,13 +43,28 @@ function AgregarProducto() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+    setImagen(e.target.files[0]); 
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
 
+    const formData = new FormData();
+    Object.entries(form).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    if (imagen) {
+      formData.append('imagen', imagen);
+    }
+
     try {
-      await API.post('/productos', form, {
-        headers: { Authorization: `Bearer ${token}` }
+      await API.post('/productos', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
       });
       toast.success('Producto agregado correctamente');
       navigate('/productos');
@@ -103,14 +118,13 @@ function AgregarProducto() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Imagen (URL):</label>
+          <label className="block text-sm font-medium mb-1">Imagen:</label>
           <input
-            type="text"
+            type="file"
             name="imagen"
-            value={form.imagen}
-            onChange={handleChange}
+            accept="image/*"
+            onChange={handleFileChange}
             className="w-full border border-gray-300 rounded px-3 py-2"
-            placeholder="https://..."
           />
         </div>
         <button

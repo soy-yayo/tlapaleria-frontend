@@ -236,7 +236,7 @@ function Productos() {
               <p className="text-sm text-gray-600">Stock: {p.cantidad_stock}</p>
               <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
               <p className="text-sm text-gray-600 font-bold">Precio: ${p.precio_venta}</p>
-              {p.cantidad_stock === 0 && (
+              {/* {p.cantidad_stock === 0 && ( */}
                 <div className="flex mt-2 gap-2">
                   <Link
                     to={`/productos/editar/${p.id}`}
@@ -256,7 +256,7 @@ function Productos() {
                   </button>
 
                 </div>
-              )}
+              {/* )} */}
             </div>
           ))}
         </div>
