@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 import TicketModal from '../components/TicketModal';
+import { useNavigate } from 'react-router-dom';
 
 function NuevaVenta() {
   const [productos, setProductos] = useState([]);
@@ -13,6 +14,7 @@ function NuevaVenta() {
   const [ventaFinalizada, setVentaFinalizada] = useState(null);
   const [productosVendidos, setProductosVendidos] = useState([]);
 
+  const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
 
@@ -100,6 +102,7 @@ function NuevaVenta() {
       toast.success(`Venta registrada con ID ${ventaId}`);
       setTicket([]);
       setBusqueda('');
+      navigate('/productos'); 
     } catch (error) {
       console.error(error);
       toast.error('Error al registrar la venta');
@@ -132,6 +135,7 @@ function NuevaVenta() {
             <h3 className="font-bold">{producto.descripcion}</h3>
             <p className="text-sm">Código: {producto.codigo}</p>
             <p className="text-sm text-gray-600">${producto.precio_venta}</p>
+            <p className="text-sm text-gray-600">Stock: {producto.cantidad_stock}</p>
           </div>
         ))}
       </div>

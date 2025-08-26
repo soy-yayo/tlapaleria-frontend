@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import LogoutButton from '../components/LogoutButton';
 import API from '../services/api';
 import { Link } from 'react-router-dom';
-import handleEliminar from '../components/HandleEliminar';
+import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -46,6 +46,23 @@ function Productos() {
       p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
     )
   );
+  const handleEliminar = async (id) => {
+  const confirmar = window.confirm('¿Estás seguro de eliminar este producto?');
+  if (!confirmar) return;
+
+  const token = localStorage.getItem('token');
+
+  try {
+    await API.delete(`/productos/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+      setProductos((prev) => prev.filter((p) => p.id !== id));
+      toast.success('Producto eliminado');
+    } catch (err) {
+      toast.error('No se pudo eliminar el producto');
+    }
+  }; 
   if (productosFiltrados.length === 0) {
     return (
       <>
@@ -231,9 +248,7 @@ function Productos() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleEliminar(p.id, (idEliminado) => {
-                        setProductos((prev) => prev.filter(prod => prod.id !== idEliminado));
-                      });
+                      handleEliminar(p.id);
                     }}
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                   >
