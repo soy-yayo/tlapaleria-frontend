@@ -17,23 +17,29 @@ function Navbar() {
         <Link to="/productos" className="font-bold hover:underline">
           Inicio
         </Link>
-        <Link to="/productos/nuevo" className="font-bold hover:underline">
-          Agregar producto
-        </Link>
-        <Link to={"/usuarios"} className='font-bold hover:underline'>
-          Usuarios
-        </Link>
-        <Link to={"/usuarios/nuevo"} className='font-bold hover:underline'>
-        Registar usuario
-        </Link>
+        {usuario?.rol === 'admin' && (
+          <Link to="/productos/nuevo" className="font-bold hover:underline">
+            Agregar producto
+          </Link>
+        )}
+        {usuario?.rol === 'admin' && (
+          <>
+            <Link to="/usuarios" className="font-bold hover:underline">
+              Usuarios
+            </Link>
+            <Link to="/usuarios/nuevo" className="font-bold hover:underline">
+              Registrar usuario
+            </Link>
+          </>
+        )}
         <Link to="/ventas/nueva" className="font-bold hover:underline">
           Nueva Venta
         </Link>
         <Link to="/ventas/historial" className="font-bold hover:underline">
           Historial de Ventas
         </Link>
-
       </div>
+
       <div className="flex items-center gap-4">
         {usuario && (
           <span className="text-sm">
