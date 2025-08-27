@@ -194,7 +194,6 @@ function Productos() {
     </div>
   );
 
-
   const GridProductos = ({ esAdmin, mostrarAcciones }) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {productosFiltrados.map(p => (
@@ -202,16 +201,6 @@ function Productos() {
       ))}
     </div>
   );
-
-
-  if (productosFiltrados.length === 0) {
-    return (
-      <>
-        <Filtros />
-        <p>No se encontraron productos.</p>
-      </>
-    );
-  }
 
   // Vista ADMIN
   const AdminView = () => (
@@ -236,10 +225,14 @@ function Productos() {
             >
               Exportar a Excel
             </button>
-            {/* <LogoutButton /> */}
           </div>
         </div>
-        <GridProductos mostrarAcciones />
+
+        {productosFiltrados.length === 0 ? (
+          <p className="text-gray-500">No se encontraron productos.</p>
+        ) : (
+          <GridProductos mostrarAcciones esAdmin />
+        )}
       </div>
 
       {productoSeleccionado && (
@@ -262,7 +255,12 @@ function Productos() {
           <h1 className="text-xl font-semibold">Productos</h1>
           <p className="text-sm text-gray-600">Catálogo de productos (solo lectura).</p>
         </div>
-        <GridProductos mostrarAcciones={false} />
+
+        {productosFiltrados.length === 0 ? (
+          <p className="text-gray-500">No se encontraron productos.</p>
+        ) : (
+          <GridProductos mostrarAcciones={false} esAdmin={false} />
+        )}
       </div>
 
       {productoSeleccionado && (
@@ -302,7 +300,6 @@ function ModalProducto({ p, esAdmin = false, onClose, onEliminar }) {
           <p><strong>Stock:</strong> {p.cantidad_stock}</p>
           <p><strong>Precio venta:</strong> ${p.precio_venta}</p>
 
-          {/* 👇 Solo admin ve proveedor y precio compra */}
           {esAdmin && (
             <>
               <p><strong>Proveedor:</strong> {p.nombre_proveedor}</p>
@@ -336,6 +333,5 @@ function ModalProducto({ p, esAdmin = false, onClose, onEliminar }) {
     </div>
   );
 }
-
 
 export default Productos;
