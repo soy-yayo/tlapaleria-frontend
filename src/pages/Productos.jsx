@@ -201,7 +201,6 @@ function Productos() {
                 src={p.imagen}
                 alt={p.descripcion}
                 className="w-full h-40 object-cover mb-2 rounded"
-                onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Sin+imagen'; }}
               />
               <h3 className="font-bold">{p.descripcion}</h3>
               <p className="text-sm text-gray-600">Código: {p.codigo}</p>
@@ -245,7 +244,6 @@ function Productos() {
               src={productoSeleccionado.imagen}
               alt="producto"
               className="w-full h-52 object-cover rounded mb-4"
-              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Sin+imagen'; }}
             />
             <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
             <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
