@@ -109,7 +109,7 @@ function NuevaVenta() {
       toast.success(`Venta registrada con ID ${ventaId}`);
       setTicket([]);
       setBusqueda('');
-      navigate('/productos'); 
+      navigate('/productos');
     } catch (error) {
       console.error(error);
       toast.error('Error al registrar la venta');
@@ -136,9 +136,18 @@ function NuevaVenta() {
         {productosFiltrados.slice(0, 9).map((producto) => (
           <div
             key={producto.id}
-            className="border p-4 rounded shadow hover:bg-gray-100 cursor-pointer"
+            className="border p-4 rounded shadow hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center"
             onClick={() => agregarAlTicket(producto)}
           >
+            {/* Imagen del producto */}
+            {producto.imagen && (
+              <img
+                src={producto.imagen}
+                alt={producto.descripcion}
+                className="w-32 h-32 object-cover mb-2 rounded"
+              />
+            )}
+
             <h3 className="font-bold">{producto.descripcion}</h3>
             <p className="text-sm">Código: {producto.codigo}</p>
             <p className="text-sm text-gray-600">${producto.precio_venta}</p>
@@ -146,6 +155,7 @@ function NuevaVenta() {
           </div>
         ))}
       </div>
+
 
       <h2 className="text-xl font-semibold mb-2">Ticket de venta</h2>
       <div className="overflow-auto mb-4">

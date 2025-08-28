@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUsuario } from '../hooks/useUsuario';
 import { useState } from 'react';
-import {Menu, X} from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 function Navbar() {
   const usuario = useUsuario();
@@ -20,7 +20,7 @@ function Navbar() {
     { to: '/productos/nuevo', label: 'Agregar producto', admin: true },
     { to: '/usuarios', label: 'Usuarios', admin: true },
     { to: '/usuarios/nuevo', label: 'Registrar usuario', admin: true },
-    { to: '/ventas/nueva', label: 'Nueva Venta' },
+    { to: '/ventas/nueva', label: 'Nueva Venta', newTab: true },
     { to: '/ventas/historial', label: 'Historial de Ventas' },
   ];
 
@@ -35,20 +35,34 @@ function Navbar() {
 
           {/* Menú desktop */}
           <div className="hidden md:flex gap-6">
-            {navLinks.map(
-              (link) =>
-                (!link.admin || usuario?.rol === 'admin') && (
+            {/* Menú desktop */}
+            <div className="hidden md:flex gap-6">
+              {navLinks.map((link) =>
+                (!link.admin || usuario?.rol === 'admin') &&
+                (link.newTab ? (
+                  <a
+                    key={link.to}
+                    href={link.to}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`font-medium hover:underline ${location.pathname === link.to ? 'text-yellow-400' : ''
+                      }`}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`font-medium hover:underline ${
-                      location.pathname === link.to ? 'text-yellow-400' : ''
-                    }`}
+                    className={`font-medium hover:underline ${location.pathname === link.to ? 'text-yellow-400' : ''
+                      }`}
                   >
                     {link.label}
                   </Link>
-                )
-            )}
+                ))
+              )}
+            </div>
+
           </div>
 
           {/* Usuario + logout */}
@@ -85,9 +99,8 @@ function Navbar() {
                   key={link.to}
                   to={link.to}
                   onClick={() => setMenuOpen(false)}
-                  className={`block hover:underline ${
-                    location.pathname === link.to ? 'text-yellow-400' : ''
-                  }`}
+                  className={`block hover:underline ${location.pathname === link.to ? 'text-yellow-400' : ''
+                    }`}
                 >
                   {link.label}
                 </Link>
