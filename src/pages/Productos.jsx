@@ -8,6 +8,13 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
+function normalizarTexto(texto = '') {
+  return String(texto)
+    .normalize("NFD")           // separa caracteres y acentos
+    .replace(/[\u0300-\u036f]/g, '') // elimina los acentos
+    .toLowerCase();
+}
+
 function Productos() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productos, setProductos] = useState([]);
@@ -51,8 +58,8 @@ function Productos() {
     (proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro) &&
     (ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro) &&
     (
-      (p.codigo || '').toLowerCase().includes(busqueda.toLowerCase()) ||
-      (p.descripcion || '').toLowerCase().includes(busqueda.toLowerCase())
+      normalizarTexto(p.codigo).includes(normalizarTexto(busqueda)) ||
+      normalizarTexto(p.descripcion).includes(normalizarTexto(busqueda))
     )
   );
 
