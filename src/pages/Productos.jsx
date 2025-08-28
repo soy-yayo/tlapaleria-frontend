@@ -1,5 +1,5 @@
+// src/pages/Productos.jsx
 import { useEffect, useState } from 'react';
-import LogoutButton from '../components/LogoutButton';
 import API from '../services/api';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -8,10 +8,10 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
-
 function Productos() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productos, setProductos] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
   const [proveedorFiltro, setProveedorFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
 
@@ -20,32 +20,28 @@ function Productos() {
       try {
         const token = localStorage.getItem('token');
         const res = await API.get('/productos', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
-        setProductos(res.data);
+        setProductos(res.data || []);
       } catch (err) {
         console.error('Error al cargar productos:', err);
-        alert('Debes iniciar sesión');
+        toast.error('Debes iniciar sesión');
       }
     };
 
     fetchProductos();
   }, []);
 
-  const [busqueda, setBusqueda] = useState('');
-  const proveedoresUnicos = [...new Set(productos.map(p => p.nombre_proveedor))];
-  const ubicacionesUnicas = [...new Set(productos.map(p => p.ubicacion))];
-
+  // === Normalización igual que en NuevaVenta.jsx ===
   function normalizarTexto(texto = '') {
     return String(texto)
-      .normalize("NFD")
+      .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
   }
 
-  const productosFiltrados = productos.filter(p =>
+  // === Filtros + búsqueda normalizada por código o descripción ===
+  const productosFiltrados = productos.filter((p) =>
     (proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro) &&
     (ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro) &&
     (
@@ -53,76 +49,27 @@ function Productos() {
       normalizarTexto(p.descripcion).includes(normalizarTexto(busqueda))
     )
   );
-  const handleEliminar = async (id) => {
-  const confirmar = window.confirm('¿Estás seguro de eliminar este producto?');
-  if (!confirmar) return;
 
-  const token = localStorage.getItem('token');
+  // Valores únicos para selects
+  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))];
+  const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))];
 
-  try {
-    await API.delete(`/productos/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-      setProductos((prev) => prev.filter((p) => p.id !== id));
-      toast.success('Producto eliminado');
-    } catch (err) {
-      toast.error('No se pudo eliminar el producto');
-    }
-  }; 
-  if (productosFiltrados.length === 0) {
-    return (
-      <>
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
-          <select
-            value={proveedorFiltro}
-            onChange={(e) => setProveedorFiltro(e.target.value)}
-            className="border px-3 py-2 rounded w-full sm:w-1/2"
-          >
-            <option value="">Todos los proveedores</option>
-            {proveedoresUnicos.map((prov) => (
-              <option key={prov} value={prov}>{prov}</option>
-            ))}
-          </select>
-
-          <select
-            value={ubicacionFiltro}
-            onChange={(e) => setUbicacionFiltro(e.target.value)}
-            className="border px-3 py-2 rounded w-full sm:w-1/2"
-          >
-            <option value="">Todas las ubicaciones</option>
-            {ubicacionesUnicas.map((ubi) => (
-              <option key={ubi} value={ubi}>{ubi}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Buscar por código o descripción..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-          />
-        </div>
-        <p>No se encontraron productos.</p>
-      </>
-    )
-  }
-
-
+  // === Exportar PDF (usa lista filtrada) ===
   const exportarPDF = () => {
-    const doc = new jsPDF();
+    if (productosFiltrados.length === 0) {
+      toast.info('No hay datos para exportar');
+      return;
+    }
 
-    doc.text("Inventario de productos", 14, 10);
+    const doc = new jsPDF();
+    doc.text('Inventario de productos', 14, 10);
 
     const tabla = productosFiltrados.map(p => [
       p.codigo,
       p.descripcion,
       p.ubicacion,
       p.cantidad_stock,
-      `$${p.precio_venta}`,
+      `$${Number(p.precio_venta ?? 0).toFixed(2)}`,
       p.nombre_proveedor
     ]);
 
@@ -130,19 +77,25 @@ function Productos() {
       head: [['Código', 'Descripción', 'Ubicación', 'Stock', 'Precio Venta', 'Proveedor']],
       body: tabla,
       startY: 20,
-      styles: { fontSize: 10 },
+      styles: { fontSize: 10 }
     });
 
-    doc.save("inventario.pdf");
+    doc.save('inventario.pdf');
   };
 
+  // === Exportar Excel (usa lista filtrada) ===
   const exportarExcel = () => {
+    if (productosFiltrados.length === 0) {
+      toast.info('No hay datos para exportar');
+      return;
+    }
+
     const worksheetData = productosFiltrados.map(p => ({
       Código: p.codigo,
       Descripción: p.descripcion,
       Ubicación: p.ubicacion,
       Stock: p.cantidad_stock,
-      'Precio Venta': p.precio_venta,
+      'Precio Venta': Number(p.precio_venta ?? 0),
       Proveedor: p.nombre_proveedor
     }));
 
@@ -155,9 +108,31 @@ function Productos() {
     saveAs(file, 'inventario.xlsx');
   };
 
+  // === Eliminar producto ===
+  const handleEliminar = async (id) => {
+    const confirmar = window.confirm('¿Estás seguro de eliminar este producto?');
+    if (!confirmar) return;
+
+    const token = localStorage.getItem('token');
+
+    try {
+      await API.delete(`/productos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setProductos((prev) => prev.filter((p) => p.id !== id));
+      toast.success('Producto eliminado');
+    } catch (err) {
+      console.error(err);
+      toast.error('No se pudo eliminar el producto');
+    }
+  };
 
   return (
-    <>
+    <div className="container mx-auto p-4 bg-white shadow-md rounded-lg">
+      <h1 className="text-2xl font-bold mb-4 text-center">Productos</h1>
+
+      {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <select
           value={proveedorFiltro}
@@ -182,6 +157,7 @@ function Productos() {
         </select>
       </div>
 
+      {/* Buscador normalizado (igual a NuevaVenta) */}
       <div className="mb-4">
         <input
           type="text"
@@ -192,41 +168,29 @@ function Productos() {
         />
       </div>
 
-      <div className='container mx-auto p-4 bg-white shadow-md rounded-lg'>
-        {/* <Link
-        to="/productos/nuevo"
-        className="inline-block mb-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        + Agregar producto
-      </Link>
-      <LogoutButton /> */}
-        <h1>Productos</h1>
-        <p>Lista de productos disponibles:</p>
+      {/* Acciones de exportación */}
+      <div className="mb-4 flex items-center gap-2">
         <button
           onClick={exportarPDF}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded mb-4"
+          disabled={productosFiltrados.length === 0}
+          className={`px-4 py-2 rounded text-white ${productosFiltrados.length === 0 ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
         >
           Exportar a PDF
         </button>
         <button
           onClick={exportarExcel}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mb-4 ml-2"
+          disabled={productosFiltrados.length === 0}
+          className={`px-4 py-2 rounded text-white ${productosFiltrados.length === 0 ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
         >
           Exportar a Excel
         </button>
+      </div>
 
+      {/* Listado / vacío */}
+      {productosFiltrados.length === 0 ? (
+        <p className="text-gray-600">No se encontraron productos.</p>
+      ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {/* <thead>
-            <tr className="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
-              <th>ID</th>
-              <th>Código</th>
-              <th>Descripción</th>
-              <th>Stock</th>
-              <th>Precio Venta</th>
-              <th>Proveedor</th>
-            </tr>
-          </thead>
-          <tbody> */}
           {productosFiltrados.map(p => (
             <div
               key={p.id}
@@ -237,63 +201,62 @@ function Productos() {
                 src={p.imagen}
                 alt={p.descripcion}
                 className="w-full h-40 object-cover mb-2 rounded"
+                onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Sin+imagen'; }}
               />
-              <h3>{p.descripcion}</h3>
+              <h3 className="font-bold">{p.descripcion}</h3>
               <p className="text-sm text-gray-600">Código: {p.codigo}</p>
               <p className="text-sm text-gray-600">Stock: {p.cantidad_stock}</p>
-              {/* <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p> */}
-              <p className="text-sm text-gray-600 font-bold">Precio: ${p.precio_venta}</p>
-              {/* {p.cantidad_stock === 0 && ( */}
-                <div className="flex mt-2 gap-2">
-                  <Link
-                    to={`/productos/editar/${p.id}`}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Editar
-                  </Link>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEliminar(p.id);
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Eliminar
-                  </button>
+              <p className="text-sm text-gray-600 font-bold">Precio: ${Number(p.precio_venta ?? 0).toFixed(2)}</p>
 
-                </div>
-              {/* )} */}
+              <div className="flex mt-2 gap-2">
+                <Link
+                  to={`/productos/editar/${p.id}`}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Editar
+                </Link>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEliminar(p.id);
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           ))}
         </div>
+      )}
 
-        {productoSeleccionado && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg w-full max-w-md relative">
-              <button
-                className="absolute top-2 right-3 text-xl"
-                onClick={() => setProductoSeleccionado(null)}
-              >
-                &times;
-              </button>
-              <img
-                src={productoSeleccionado.imagen}
-                alt="producto"
-                className="w-full h-52 object-cover rounded mb-4"
-              />
-              <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
-              <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
-              <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
-              <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
-              {/* <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p> */}
-              <p><strong>Precio:</strong> ${productoSeleccionado.precio_venta}</p>
-              {/* <p><strong>Precio compra:</strong> ${productoSeleccionado.precio_compra}</p> */}
-            </div>
+      {/* Modal detalle */}
+      {productoSeleccionado && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-3 text-xl"
+              onClick={() => setProductoSeleccionado(null)}
+            >
+              &times;
+            </button>
+            <img
+              src={productoSeleccionado.imagen}
+              alt="producto"
+              className="w-full h-52 object-cover rounded mb-4"
+              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Sin+imagen'; }}
+            />
+            <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
+            <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
+            <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
+            <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
+            <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
+            <p><strong>Precio:</strong> ${Number(productoSeleccionado.precio_venta ?? 0).toFixed(2)}</p>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 }
 
