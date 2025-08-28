@@ -206,12 +206,13 @@ function Productos() {
               <h3 className="font-bold">{p.descripcion}</h3>
               <p className="text-sm text-gray-600">Código: {p.codigo}</p>
               <p className="text-sm text-gray-600">Stock: {p.cantidad_stock}</p>
+              <p className="text-sm text-gray-600">Ubicación: {p.ubicacion}</p>
               <p className="text-sm text-gray-600 font-bold">Precio: ${Number(p.precio_venta ?? 0).toFixed(2)}</p>
 
               {/* Info extra solo para admin */}
               {usuario?.rol === 'admin' && (
                 <>
-                  <p className="text-sm text-gray-600">Ubicación: {p.ubicacion}</p>
+                  <p className="text-sm text-gray-600 font-bold">Precio compra: {p.precio_compra}</p>
                   <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
                 </>
               )}
@@ -272,26 +273,27 @@ function Productos() {
               <>
                 <p><strong>Precio compra: </strong>${Number(productoSeleccionado.precio_compra ?? 0).toFixed(2)}</p>
                 <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
+                <div className="flex mt-2 gap-2">
+                  <Link
+                    to={`/productos/editar/${productoSeleccionado.id}`}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Editar
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEliminar(productoSeleccionado.id);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </>
             )}
-              <div className="flex mt-2 gap-2">
-                <Link
-                  to={`/productos/editar/${productoSeleccionado.id}`}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Editar
-                </Link>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEliminar(productoSeleccionado.id);
-                  }}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                >
-                  Eliminar
-                </button>
-              </div>
+
           </div>
         </div>
       )}
