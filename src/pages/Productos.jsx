@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
@@ -16,7 +16,7 @@ function normalizarTexto(texto = '') {
 }
 
 // Componente de filtros
-function Filtros({
+const Filtros = React.memo(function Filtros({
   proveedorFiltro,
   setProveedorFiltro,
   ubicacionFiltro,
@@ -54,8 +54,8 @@ function Filtros({
 
       <div className="mb-4">
         <input
-          type="text"
           key="busqueda"
+          type="text"
           placeholder="Buscar por código o descripción..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
@@ -64,7 +64,7 @@ function Filtros({
       </div>
     </>
   );
-}
+});
 
 function Productos() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -103,17 +103,28 @@ function Productos() {
     fetchProductos();
   }, []);
 
-  const proveedoresUnicos = [...new Set(productos.map(p => p.nombre_proveedor))];
-  const ubicacionesUnicas = [...new Set(productos.map(p => p.ubicacion))];
+  // Memorizar listas para que no cambien en cada render
+  const proveedoresUnicos = useMemo(
+    () => [...new Set(productos.map(p => p.nombre_proveedor))],
+    [productos]
+  );
+
+  const ubicacionesUnicas = useMemo(
+    () => [...new Set(productos.map(p => p.ubicacion))],
+    [productos]
+  );
 
   // Filtrado de productos
-  const productosFiltrados = productos.filter(p =>
-    (proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro) &&
-    (ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro) &&
-    (
-      normalizarTexto(p.codigo).includes(normalizarTexto(busqueda)) ||
-      normalizarTexto(p.descripcion).includes(normalizarTexto(busqueda))
-    )
+  const productosFiltrados = useMemo(() => 
+    productos.filter(p =>
+      (proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro) &&
+      (ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro) &&
+      (
+        normalizarTexto(p.codigo).includes(normalizarTexto(busqueda)) ||
+        normalizarTexto(p.descripcion).includes(normalizarTexto(busqueda))
+      )
+    ),
+    [productos, proveedorFiltro, ubicacionFiltro, busqueda]
   );
 
   // Eliminar producto
