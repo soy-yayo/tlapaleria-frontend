@@ -33,9 +33,16 @@ function NuevaVenta() {
     cargarProductos();
   }, []);
 
+  function normalizarTexto(texto = '') {
+    return String(texto)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
+
   const productosFiltrados = productos.filter((p) =>
-    p.codigo.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+    normalizarTexto(p.codigo).includes(normalizarTexto(busqueda)) ||
+    normalizarTexto(p.descripcion).includes(normalizarTexto(busqueda))
   );
 
   const agregarAlTicket = (producto) => {

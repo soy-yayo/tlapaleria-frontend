@@ -1,18 +1,68 @@
 import { useEffect, useState } from 'react';
-import LogoutButton from '../components/LogoutButton';
-import API from '../services/api';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import API from '../services/api';
 
+// Normaliza texto (quita acentos y minúsculas)
 function normalizarTexto(texto = '') {
   return String(texto)
-    .normalize("NFD")           // separa caracteres y acentos
-    .replace(/[\u0300-\u036f]/g, '') // elimina los acentos
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+// Componente de filtros
+function Filtros({
+  proveedorFiltro,
+  setProveedorFiltro,
+  ubicacionFiltro,
+  setUbicacionFiltro,
+  busqueda,
+  setBusqueda,
+  proveedoresUnicos,
+  ubicacionesUnicas
+}) {
+  return (
+    <>
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <select
+          value={proveedorFiltro}
+          onChange={(e) => setProveedorFiltro(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-1/2"
+        >
+          <option value="">Todos los proveedores</option>
+          {proveedoresUnicos.map(prov => (
+            <option key={prov} value={prov}>{prov}</option>
+          ))}
+        </select>
+
+        <select
+          value={ubicacionFiltro}
+          onChange={(e) => setUbicacionFiltro(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-1/2"
+        >
+          <option value="">Todas las ubicaciones</option>
+          {ubicacionesUnicas.map(ubi => (
+            <option key={ubi} value={ubi}>{ubi}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Buscar por código o descripción..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full border px-3 py-2 rounded"
+        />
+      </div>
+    </>
+  );
 }
 
 function Productos() {
@@ -21,9 +71,9 @@ function Productos() {
   const [proveedorFiltro, setProveedorFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
   const [busqueda, setBusqueda] = useState('');
-  const [rol, setRol] = useState(null); // 'admin' | 'user' | null
+  const [rol, setRol] = useState(null);
 
-  // Lee el usuario/rol desde localStorage de forma segura
+  // Cargar rol desde localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem('usuario');
@@ -35,12 +85,13 @@ function Productos() {
     }
   }, []);
 
+  // Cargar productos
   useEffect(() => {
     const fetchProductos = async () => {
       try {
         const token = localStorage.getItem('token');
         const res = await API.get('/productos', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setProductos(res.data);
       } catch (err) {
@@ -54,6 +105,7 @@ function Productos() {
   const proveedoresUnicos = [...new Set(productos.map(p => p.nombre_proveedor))];
   const ubicacionesUnicas = [...new Set(productos.map(p => p.ubicacion))];
 
+  // Filtrado de productos
   const productosFiltrados = productos.filter(p =>
     (proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro) &&
     (ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro) &&
@@ -63,6 +115,7 @@ function Productos() {
     )
   );
 
+  // Eliminar producto
   const handleEliminar = async (id) => {
     const confirmar = window.confirm('¿Estás seguro de eliminar este producto?');
     if (!confirmar) return;
@@ -79,6 +132,7 @@ function Productos() {
     }
   };
 
+  // Exportar PDF
   const exportarPDF = () => {
     const doc = new jsPDF();
     doc.text("Inventario de productos", 14, 10);
@@ -99,6 +153,7 @@ function Productos() {
     doc.save("inventario.pdf");
   };
 
+  // Exportar Excel
   const exportarExcel = () => {
     const worksheetData = productosFiltrados.map(p => ({
       Código: p.codigo,
@@ -106,7 +161,7 @@ function Productos() {
       Ubicación: p.ubicacion,
       Stock: p.cantidad_stock,
       'Precio Venta': p.precio_venta,
-      Proveedor: p.nombre_proveedor
+      Proveedor: p.nombre_proveedor,
     }));
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
@@ -116,45 +171,8 @@ function Productos() {
     saveAs(file, 'inventario.xlsx');
   };
 
-  const Filtros = () => (
-    <>
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        <select
-          value={proveedorFiltro}
-          onChange={(e) => setProveedorFiltro(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/2"
-        >
-          <option value="">Todos los proveedores</option>
-          {proveedoresUnicos.map((prov) => (
-            <option key={prov} value={prov}>{prov}</option>
-          ))}
-        </select>
-
-        <select
-          value={ubicacionFiltro}
-          onChange={(e) => setUbicacionFiltro(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/2"
-        >
-          <option value="">Todas las ubicaciones</option>
-          {ubicacionesUnicas.map((ubi) => (
-            <option key={ubi} value={ubi}>{ubi}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Buscar por código o descripción..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
-        />
-      </div>
-    </>
-  );
-
-  const TarjetaProducto = ({ p, esAdmin, mostrarAcciones }) => (
+  // Tarjeta de producto
+  const TarjetaProducto = ({ p, esAdmin }) => (
     <div
       className="bg-white shadow rounded p-4 cursor-pointer hover:shadow-md transition"
       onClick={() => setProductoSeleccionado(p)}
@@ -173,12 +191,12 @@ function Productos() {
 
       {esAdmin && (
         <>
-          <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
           <p className="text-sm text-gray-600 font-bold">Precio compra: ${p.precio_compra}</p>
+          <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
         </>
       )}
 
-      {mostrarAcciones && (
+      {esAdmin && (
         <div className="flex mt-2 gap-2">
           <Link
             to={`/productos/editar/${p.id}`}
@@ -201,90 +219,8 @@ function Productos() {
     </div>
   );
 
-  const GridProductos = ({ esAdmin, mostrarAcciones }) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {productosFiltrados.map(p => (
-        <TarjetaProducto key={p.id} p={p} esAdmin={esAdmin} mostrarAcciones={mostrarAcciones} />
-      ))}
-    </div>
-  );
-
-  // Vista ADMIN
-  const AdminView = () => (
-    <>
-      <Filtros />
-      <div className='container mx-auto p-4 bg-white shadow-md rounded-lg'>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-xl font-semibold">Productos (Admin)</h1>
-            <p className="text-sm text-gray-600">Gestión completa del inventario.</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={exportarPDF}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-            >
-              Exportar a PDF
-            </button>
-            <button
-              onClick={exportarExcel}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-            >
-              Exportar a Excel
-            </button>
-          </div>
-        </div>
-
-        {productosFiltrados.length === 0 ? (
-          <p className="text-gray-500">No se encontraron productos.</p>
-        ) : (
-          <GridProductos mostrarAcciones esAdmin />
-        )}
-      </div>
-
-      {productoSeleccionado && (
-        <ModalProducto
-          p={productoSeleccionado}
-          esAdmin
-          onClose={() => setProductoSeleccionado(null)}
-          onEliminar={() => handleEliminar(productoSeleccionado.id)}
-        />
-      )}
-    </>
-  );
-
-  // Vista USUARIO (solo lectura)
-  const UserView = () => (
-    <>
-      <Filtros />
-      <div className='container mx-auto p-4 bg-white shadow-md rounded-lg'>
-        <div className="mb-4">
-          <h1 className="text-xl font-semibold">Productos</h1>
-          <p className="text-sm text-gray-600">Catálogo de productos (solo lectura).</p>
-        </div>
-
-        {productosFiltrados.length === 0 ? (
-          <p className="text-gray-500">No se encontraron productos.</p>
-        ) : (
-          <GridProductos mostrarAcciones={false} esAdmin={false} />
-        )}
-      </div>
-
-      {productoSeleccionado && (
-        <ModalProducto
-          p={productoSeleccionado}
-          esAdmin={false}
-          onClose={() => setProductoSeleccionado(null)}
-        />
-      )}
-    </>
-  );
-
-  return rol === 'admin' ? <AdminView /> : <UserView />;
-}
-
-function ModalProducto({ p, esAdmin = false, onClose, onEliminar }) {
-  return (
+  // Modal de producto
+  const ModalProducto = ({ p, esAdmin, onClose }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded shadow-lg w-full max-w-md relative">
         <button className="absolute top-2 right-3 text-xl" onClick={onClose}>
@@ -300,17 +236,15 @@ function ModalProducto({ p, esAdmin = false, onClose, onEliminar }) {
         )}
 
         <h2 className="text-xl font-bold mb-2">{p.descripcion}</h2>
-
         <div className="space-y-1">
           <p><strong>Código:</strong> {p.codigo}</p>
           <p><strong>Ubicación:</strong> {p.ubicacion}</p>
           <p><strong>Stock:</strong> {p.cantidad_stock}</p>
           <p><strong>Precio venta:</strong> ${p.precio_venta}</p>
-
           {esAdmin && (
             <>
-              <p><strong>Proveedor:</strong> {p.nombre_proveedor}</p>
               <p><strong>Precio compra:</strong> ${p.precio_compra}</p>
+              <p><strong>Proveedor:</strong> {p.nombre_proveedor}</p>
             </>
           )}
         </div>
@@ -326,9 +260,8 @@ function ModalProducto({ p, esAdmin = false, onClose, onEliminar }) {
             </Link>
             <button
               className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEliminar?.();
+              onClick={() => {
+                handleEliminar(p.id);
                 onClose();
               }}
             >
@@ -338,6 +271,67 @@ function ModalProducto({ p, esAdmin = false, onClose, onEliminar }) {
         )}
       </div>
     </div>
+  );
+
+  return (
+    <>
+      <Filtros
+        proveedorFiltro={proveedorFiltro}
+        setProveedorFiltro={setProveedorFiltro}
+        ubicacionFiltro={ubicacionFiltro}
+        setUbicacionFiltro={setUbicacionFiltro}
+        busqueda={busqueda}
+        setBusqueda={setBusqueda}
+        proveedoresUnicos={proveedoresUnicos}
+        ubicacionesUnicas={ubicacionesUnicas}
+      />
+
+      <div className='container mx-auto p-4 bg-white shadow-md rounded-lg'>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-semibold">Productos</h1>
+            {rol === 'admin'
+              ? <p className="text-sm text-gray-600">Gestión completa del inventario.</p>
+              : <p className="text-sm text-gray-600">Catálogo de productos (solo lectura).</p>}
+          </div>
+
+          {rol === 'admin' && (
+            <div className="flex gap-2">
+              <button
+                onClick={exportarPDF}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+              >
+                Exportar a PDF
+              </button>
+              <button
+                onClick={exportarExcel}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+              >
+                Exportar a Excel
+              </button>
+            </div>
+          )}
+        </div>
+
+        {productosFiltrados.length === 0 ? (
+          <p className="text-gray-500">No se encontraron productos.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {productosFiltrados.map(p => (
+              <TarjetaProducto key={p.id} p={p} esAdmin={rol === 'admin'} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {productoSeleccionado && (
+        <ModalProducto
+          p={productoSeleccionado}
+          esAdmin={rol === 'admin'}
+          onClose={() => setProductoSeleccionado(null)}
+        />
+      )}
+    </>
   );
 }
 
