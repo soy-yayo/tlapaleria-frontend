@@ -132,31 +132,6 @@ function NuevaVenta() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {productosFiltrados.slice(0, 9).map((producto) => (
-          <div
-            key={producto.id}
-            className="border p-4 rounded shadow hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center"
-            onClick={() => agregarAlTicket(producto)}
-          >
-            {/* Imagen del producto */}
-            {producto.imagen && (
-              <img
-                src={producto.imagen}
-                alt={producto.descripcion}
-                className="w-32 h-32 object-cover mb-2 rounded"
-              />
-            )}
-
-            <h3 className="font-bold">{producto.descripcion}</h3>
-            <p className="text-sm">Código: {producto.codigo}</p>
-            <p className="text-sm text-gray-600">${producto.precio_venta}</p>
-            <p className="text-sm text-gray-600">Stock: {producto.cantidad_stock}</p>
-          </div>
-        ))}
-      </div>
-
-
       <h2 className="text-xl font-semibold mb-2">Ticket de venta</h2>
       <div className="overflow-auto mb-4">
         <table className="min-w-full text-left border border-gray-300">
@@ -221,7 +196,7 @@ function NuevaVenta() {
         </div>
         <div className="text-xl font-bold">Total: ${total.toFixed(2)}</div>
       </div>
-
+      <div className='mb-4'>
       <button
         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-bold"
         onClick={confirmarVenta}
@@ -229,6 +204,31 @@ function NuevaVenta() {
       >
         Confirmar Venta
       </button>
+    </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {productosFiltrados.slice(0, 9).map((producto) => (
+          <div
+            key={producto.id}
+            className="border p-4 rounded shadow hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center"
+            onClick={() => agregarAlTicket(producto)}
+          >
+            {/* Imagen del producto */}
+            {producto.imagen && ( 
+              <img
+                src={producto.imagen}
+                alt={producto.descripcion}
+                className="w-32 h-32 object-cover mb-2 rounded"
+              />
+            )}
+
+            <h3 className="font-bold">{producto.descripcion}</h3>
+            <p className="text-sm">Código: {producto.codigo}</p>
+            <p className="text-sm text-gray-600">${producto.precio_venta}</p>
+            <p className="text-sm text-gray-600">Stock: {producto.cantidad_stock}</p>
+          </div>
+        ))}
+      </div>
+
       {mostrarTicket && ventaFinalizada && (
         <TicketModal
           venta={ventaFinalizada}
