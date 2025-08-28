@@ -55,6 +55,7 @@ function Filtros({
       <div className="mb-4">
         <input
           type="text"
+          key="busqueda"
           placeholder="Buscar por código o descripción..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
