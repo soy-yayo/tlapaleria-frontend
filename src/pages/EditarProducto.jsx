@@ -32,24 +32,24 @@ function EditarProducto() {
     }
 
     const fetchData = async () => {
-    try {
-      const token = localStorage.getItem('token');
+      try {
+        const token = localStorage.getItem('token');
 
-      const [productoRes, proveedoresRes, productosRes] = await Promise.all([
-        API.get(`/productos/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        API.get(`/proveedores`),
-        API.get(`/productos`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
+        const [productoRes, proveedoresRes, productosRes] = await Promise.all([
+          API.get(`/productos/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          API.get(`/proveedores`),
+          API.get(`/productos`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
 
-      setForm(productoRes.data);
-      setProveedores(proveedoresRes.data);
-      setProductos(productosRes.data);
-    } catch (err) {
-      toast.error('Error al cargar el producto');
+        setForm(productoRes.data);
+        setProveedores(proveedoresRes.data);
+        setProductos(productosRes.data);
+      } catch (err) {
+        toast.error('Error al cargar el producto');
       }
     };
 
@@ -76,12 +76,14 @@ function EditarProducto() {
       formData.append('imagen', imagen);
     }
 
-    const codigoExistente = productos.find(p => p.codigo === form.codigo);
+    const codigoExistente = productos.find(
+      (p) => p.codigo === form.codigo && p.id !== parseInt(id)
+    );
+
     if (codigoExistente) {
       toast.error(`El código "${form.codigo}" ya está registrado en otro producto`);
       return;
     }
-
     try {
       await API.put(`/productos/${id}`, formData, {
         headers: {
@@ -139,7 +141,7 @@ function EditarProducto() {
             ))}
           </select>
         </div>
-        
+
         {form.imagen && (
           <div className="mb-2">
             <p className="text-sm text-gray-600">Imagen actual:</p>
