@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API from '../services/api';
@@ -18,38 +17,54 @@ function AgregarProducto() {
   });
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
- 
+  const [productos, setProductos] = useState([]); // ⬅️ Guardar productos existentes
+
   const usuario = JSON.parse(localStorage.getItem('usuario'));
 
   useEffect(() => {
+    if (!usuario) {
+      navigate('/login');
+      return;
+    }
     if (usuario.rol !== 'admin') {
       navigate('/denegado');
       return;
     }
 
-    const fetchProveedores = async () => {
+    // Cargar proveedores y productos existentes
+    const fetchData = async () => {
       try {
-        const res = await API.get('/proveedores');
-        setProveedores(res.data);
+        const token = localStorage.getItem('token');
+        const [resProv, resProd] = await Promise.all([
+          API.get('/proveedores', { headers: { Authorization: `Bearer ${token}` } }),
+          API.get('/productos', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        setProveedores(resProv.data);
+        setProductos(resProd.data);
       } catch (err) {
-        toast.error('Error al cargar proveedores');
+        toast.error('Error al cargar datos iniciales');
       }
     };
-
-    fetchProveedores();
-  }, []);
+    fetchData();
+  }, [usuario, navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e) => {
-    setImagen(e.target.files[0]); 
+    setImagen(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+
+    const codigoExistente = productos.find(p => p.codigo === form.codigo);
+    if (codigoExistente) {
+      toast.error(`El código "${form.codigo}" ya está registrado en otro producto`);
+      return;
+    }
 
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {

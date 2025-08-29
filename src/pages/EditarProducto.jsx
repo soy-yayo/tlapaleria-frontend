@@ -23,6 +23,7 @@ function EditarProducto() {
 
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
+  const [productos, setProductos] = useState([]);
 
   useEffect(() => {
     if (usuario.rol !== 'admin') {
@@ -30,25 +31,29 @@ function EditarProducto() {
       return;
     }
 
-    const fetchProductoYProveedores = async () => {
-      try {
-        const token = localStorage.getItem('token');
+    const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token');
 
-        const [productoRes, proveedoresRes] = await Promise.all([
-          API.get(`/productos/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          API.get(`/proveedores`)
-        ]);
+      const [productoRes, proveedoresRes, productosRes] = await Promise.all([
+        API.get(`/productos/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        API.get(`/proveedores`),
+        API.get(`/productos`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
 
-        setForm(productoRes.data);
-        setProveedores(proveedoresRes.data);
-      } catch (err) {
-        toast.error('Error al cargar el producto');
+      setForm(productoRes.data);
+      setProveedores(proveedoresRes.data);
+      setProductos(productosRes.data);
+    } catch (err) {
+      toast.error('Error al cargar el producto');
       }
     };
 
-    fetchProductoYProveedores();
+    fetchData();
   }, [id]);
 
   const handleChange = (e) => {
@@ -69,6 +74,12 @@ function EditarProducto() {
     });
     if (imagen) {
       formData.append('imagen', imagen);
+    }
+
+    const codigoExistente = productos.find(p => p.codigo === form.codigo);
+    if (codigoExistente) {
+      toast.error(`El código "${form.codigo}" ya está registrado en otro producto`);
+      return;
     }
 
     try {
