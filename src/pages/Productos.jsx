@@ -257,7 +257,7 @@ function Productos() {
       {/* Modal detalle */}
       {productoSeleccionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md relative">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-xl relative">
             <button
               className="absolute top-2 right-3 text-xl"
               onClick={() => setProductoSeleccionado(null)}
@@ -268,7 +268,7 @@ function Productos() {
             <img
               src={productoSeleccionado.imagen}
               alt={productoSeleccionado.descripcion}
-              className="w-full h-52 object-cover rounded mb-4"
+              className="w-full h-66 object-cover rounded mb-4"
             />
 
             <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
