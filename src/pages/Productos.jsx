@@ -56,7 +56,7 @@ function Productos() {
 
     // Basta con que al menos una palabra aparezca
     const coincideBusqueda =
-      palabras.length === 0 || palabras.some((palabra) => textoProducto.includes(palabra));
+      palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
 
     return coincideProveedor && coincideUbicacion && coincideBusqueda;
   });

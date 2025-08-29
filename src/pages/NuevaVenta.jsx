@@ -47,7 +47,7 @@ function NuevaVenta() {
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
 
     const coincideBusqueda =
-      palabras.length === 0 || palabras.some((palabra) => textoProducto.includes(palabra));
+      palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
 
     return coincideBusqueda;
   });
