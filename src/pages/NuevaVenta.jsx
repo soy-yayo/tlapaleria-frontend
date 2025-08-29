@@ -33,17 +33,24 @@ function NuevaVenta() {
     cargarProductos();
   }, []);
 
+  // === Normalización igual que en NuevaVenta.jsx ===
   function normalizarTexto(texto = '') {
     return String(texto)
-      .normalize("NFD")
+      .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
   }
 
-  const productosFiltrados = productos.filter((p) =>
-    normalizarTexto(p.codigo).includes(normalizarTexto(busqueda)) ||
-    normalizarTexto(p.descripcion).includes(normalizarTexto(busqueda))
-  );
+  // === Filtros + búsqueda flexible ===
+  const productosFiltrados = productos.filter((p) => {
+    const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
+    const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
+
+    const coincideBusqueda =
+      palabras.length === 0 || palabras.some((palabra) => textoProducto.includes(palabra));
+
+    return coincideBusqueda;
+  });
 
   const agregarAlTicket = (producto) => {
     const existe = ticket.find(p => p.id === producto.id);
@@ -197,14 +204,14 @@ function NuevaVenta() {
         <div className="text-xl font-bold">Total: ${total.toFixed(2)}</div>
       </div>
       <div className='mb-4'>
-      <button
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-bold"
-        onClick={confirmarVenta}
-        disabled={ticket.length === 0}
-      >
-        Confirmar Venta
-      </button>
-    </div>
+        <button
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-bold"
+          onClick={confirmarVenta}
+          disabled={ticket.length === 0}
+        >
+          Confirmar Venta
+        </button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {productosFiltrados.slice(0, 9).map((producto) => (
           <div
@@ -213,7 +220,7 @@ function NuevaVenta() {
             onClick={() => agregarAlTicket(producto)}
           >
             {/* Imagen del producto */}
-            {producto.imagen && ( 
+            {producto.imagen && (
               <img
                 src={producto.imagen}
                 alt={producto.descripcion}

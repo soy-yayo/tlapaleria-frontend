@@ -41,15 +41,26 @@ function Productos() {
       .toLowerCase();
   }
 
-  // === Filtros + búsqueda normalizada por código o descripción ===
-  const productosFiltrados = productos.filter((p) =>
-    (proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro) &&
-    (ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro) &&
-    (
-      normalizarTexto(p.codigo).includes(normalizarTexto(busqueda)) ||
-      normalizarTexto(p.descripcion).includes(normalizarTexto(busqueda))
-    )
-  );
+  // === Filtros + búsqueda flexible ===
+  const productosFiltrados = productos.filter((p) => {
+    const coincideProveedor =
+      proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
+    const coincideUbicacion =
+      ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
+
+    // Normalizamos descripción y código juntos para buscar en ambos
+    const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
+
+    // Separamos la búsqueda en palabras
+    const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
+
+    // Basta con que al menos una palabra aparezca
+    const coincideBusqueda =
+      palabras.length === 0 || palabras.some((palabra) => textoProducto.includes(palabra));
+
+    return coincideProveedor && coincideUbicacion && coincideBusqueda;
+  });
+
 
   // Valores únicos para selects
   const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))];
