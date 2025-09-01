@@ -55,6 +55,8 @@ function NuevaVenta() {
   const agregarAlTicket = (producto) => {
     const existe = ticket.find(p => p.id === producto.id);
     if (existe) {
+      const nuevaCantidad = existe.cantidad + 1;
+      actualizarCantidad(producto.id, nuevaCantidad);
       toast.info('Este producto ya está en el ticket');
       return;
     }
@@ -116,7 +118,7 @@ function NuevaVenta() {
       toast.success(`Venta registrada con ID ${ventaId}`);
       setTicket([]);
       setBusqueda('');
-      navigate('/productos');
+      // navigate('/productos');
     } catch (error) {
       console.error(error);
       toast.error('Error al registrar la venta');
@@ -135,6 +137,20 @@ function NuevaVenta() {
           placeholder="Buscar producto..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const productoEncontrado = productos.find(
+                (p) => normalizarTexto(p.codigo) === normalizarTexto(busqueda)
+              );
+              if (productoEncontrado) {
+                agregarAlTicket(productoEncontrado);
+              } else {
+                toast.error('Producto no encontrado');
+              }
+              setBusqueda('');
+            }
+          }}
           className="border border-gray-300 px-3 py-2 rounded w-full"
         />
       </div>
@@ -240,7 +256,7 @@ function NuevaVenta() {
         <TicketModal
           venta={ventaFinalizada}
           productos={productosVendidos}
-          onClose={() => setMostrarTicket(false)}
+          onClose={() => {setMostrarTicket(false); window.location.reload();}}
         />
       )}
 
