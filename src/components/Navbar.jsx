@@ -22,6 +22,7 @@ function Navbar() {
     { to: '/usuarios/nuevo', label: 'Registrar usuario', admin: true },
     { to: '/ventas/nueva', label: 'Nueva Venta', newTab: true },
     { to: '/ventas/historial', label: 'Historial de Ventas' },
+    { to: '/proveedores', label: 'Proveedores', admin: true }
   ];
 
   return (

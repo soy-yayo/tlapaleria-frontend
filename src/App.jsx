@@ -3,7 +3,7 @@ import Login from './pages/Login';
 import Productos from './pages/Productos';
 import PrivateRoute from './components/PrivateRoute';
 import AgregarProducto from './pages/AgregarProducto';
-// import Proveedores from './pages/Proveedores';
+import Proveedores from './pages/Proveedores';
 // import NavBar from './pages/NavBar';
 import NavBar from './components/Navbar';
 import EditarProducto from './pages/EditarProducto';
@@ -91,7 +91,11 @@ function App() {
               <LayoutPrivado><HistorialVentas /></LayoutPrivado>
             </PrivateRoute>
           } />
-
+          <Route path="/proveedores" element={
+            <PrivateRoute>
+              <LayoutPrivado><Proveedores /></LayoutPrivado>
+            </PrivateRoute>
+          } />
         </Routes>
       </BrowserRouter>
       <ToastContainer position="top-center" />
