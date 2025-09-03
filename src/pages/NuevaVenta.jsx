@@ -128,34 +128,34 @@ function NuevaVenta() {
 
 
   return (
-    <div className="max-w-5xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">Nueva Venta</h1>
+    <div className="max-w-6xl mx-auto p-4">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md shadow-md p-4 rounded-b-lg">
+  <h1 className="text-2xl font-bold mb-4 text-center">Nueva Venta</h1>
+  <div className="flex flex-col sm:flex-row gap-4">
+    <input
+      type="text"
+      placeholder="Buscar producto..."
+      value={busqueda}
+      onChange={(e) => setBusqueda(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const productoEncontrado = productos.find(
+            (p) => normalizarTexto(p.codigo) === normalizarTexto(busqueda)
+          );
+          if (productoEncontrado) {
+            agregarAlTicket(productoEncontrado);
+          } else {
+            toast.error('Producto no encontrado');
+          }
+          setBusqueda('');
+        }
+      }}
+      className="border border-gray-300 px-3 py-2 rounded w-full shadow-sm focus:ring focus:ring-blue-300 outline-none"
+    />
+  </div>
 
-      <div className="mb-4 flex flex-col sm:flex-row gap-4">
-        <input
-          type="text"
-          placeholder="Buscar producto..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const productoEncontrado = productos.find(
-                (p) => normalizarTexto(p.codigo) === normalizarTexto(busqueda)
-              );
-              if (productoEncontrado) {
-                agregarAlTicket(productoEncontrado);
-              } else {
-                toast.error('Producto no encontrado');
-              }
-              setBusqueda('');
-            }
-          }}
-          className="border border-gray-300 px-3 py-2 rounded w-full"
-        />
-      </div>
-
-      <h2 className="text-xl font-semibold mb-2">Ticket de venta</h2>
+      <h2 className="text-xl font-semibold mb-2 mt-2">Ticket de venta</h2>
       <div className="overflow-auto mb-4">
         <table className="min-w-full text-left border border-gray-300">
           <thead className="bg-gray-200">
@@ -228,8 +228,9 @@ function NuevaVenta() {
           Confirmar Venta
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {productosFiltrados.slice(0, 9).map((producto) => (
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {productosFiltrados.map((producto) => (
           <div
             key={producto.id}
             className="border p-4 rounded shadow hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center"
