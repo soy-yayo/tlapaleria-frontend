@@ -23,7 +23,7 @@ function Navbar() {
     { to: '/ventas/nueva', label: 'Nueva Venta', newTab: true },
     { to: '/ventas/historial', label: 'Historial de Ventas' },
     { to: '/proveedores', label: 'Proveedores', admin: true },
-    { to: '/reportes', label: 'Reportes', admin: true }
+    { to: '/corte-caja', label: 'Corte de Caja', admin: true }
   ];
 
   return (

@@ -15,7 +15,7 @@ import RegistroUsuario from './pages/RegistrarUsuario';
 import Usuarios from './pages/Usuarios';
 import EditarUsuario from './pages/EditarUsuario';
 import AccesoDenegado from './components/AccesoDenegado';
-import Reportes from './pages/Reportes';
+import CorteCaja from './pages/CorteCaja';
 
 function LayoutPrivado({ children }) {
   return (
@@ -97,11 +97,9 @@ function App() {
               <LayoutPrivado><Proveedores /></LayoutPrivado>
             </PrivateRoute>
           } />
-          
-          {/* Rutas adicionales para reportes, etc. */}
-          <Route path="/reportes" element={
+          <Route path="/corte-caja" element={
             <PrivateRoute>
-              <LayoutPrivado><Reportes /></LayoutPrivado>
+              <LayoutPrivado><CorteCaja /></LayoutPrivado>
             </PrivateRoute>
           } />
         </Routes>
