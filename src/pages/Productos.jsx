@@ -63,8 +63,8 @@ function Productos() {
 
 
   // Valores únicos para selects
-  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))];
-  const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))];
+  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   // === Exportar PDF (usa lista filtrada) ===
   const exportarPDF = () => {
