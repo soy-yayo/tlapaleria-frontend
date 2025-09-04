@@ -3,7 +3,7 @@ import { obtenerCorteCaja } from '../services/reportes';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 function CorteCaja() {
   const [reporte, setReporte] = useState([]);
@@ -34,7 +34,7 @@ function CorteCaja() {
   const exportarPDF = () => {
     const doc = new jsPDF();
     doc.text('Corte de Caja', 14, 15);
-    doc.autoTable({
+    autoTable(doc,{
       head: [['Fecha', 'Forma de Pago', 'Usuario', 'Cantidad Ventas', 'Total']],
       body: reporte.map(r => [
         r.fecha,
@@ -42,7 +42,8 @@ function CorteCaja() {
         r.usuario,
         r.cantidad_ventas,
         `$${r.total_ventas}`
-      ])
+      ]), startY: 20,
+      styles: { fontSize: 8 }
     });
     doc.save('corte_caja.pdf');
   };
