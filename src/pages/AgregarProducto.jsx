@@ -98,8 +98,7 @@ function AgregarProducto() {
           ['ubicacion', 'Ubicación'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
-          ['precio_compra', 'Precio de compra'],
-          ['precio_venta', 'Precio de venta']
+          ['precio_compra', 'Precio de compra']
         ].map(([name, label]) => (
           <div key={name}>
             <label className="block text-sm font-medium mb-1">{label}:</label>

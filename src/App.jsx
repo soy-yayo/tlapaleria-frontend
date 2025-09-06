@@ -16,6 +16,7 @@ import Usuarios from './pages/Usuarios';
 import EditarUsuario from './pages/EditarUsuario';
 import AccesoDenegado from './components/AccesoDenegado';
 import CorteCaja from './pages/CorteCaja';
+import PorcentajesDeUtilidad from './pages/PorcentajesDeUtilidad';
 
 function LayoutPrivado({ children }) {
   return (
@@ -100,6 +101,11 @@ function App() {
           <Route path="/corte-caja" element={
             <PrivateRoute>
               <LayoutPrivado><CorteCaja /></LayoutPrivado>
+            </PrivateRoute>
+          } />
+          <Route path="/porcentajes-de-utilidad" element={
+            <PrivateRoute>
+              <LayoutPrivado><PorcentajesDeUtilidad /></LayoutPrivado>
             </PrivateRoute>
           } />
         </Routes>

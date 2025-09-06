@@ -23,13 +23,14 @@ function Navbar() {
     { to: '/ventas/nueva', label: 'Nueva Venta', newTab: true },
     { to: '/ventas/historial', label: 'Historial de Ventas' },
     { to: '/proveedores', label: 'Proveedores', admin: true },
-    { to: '/corte-caja', label: 'Corte de Caja', admin: true }
+    { to: '/corte-caja', label: 'Corte de Caja', admin: true },
+    { to: '/porcentajes-de-utilidad', label: 'Calculadora de Utilidad' },
   ];
 
   return (
     <nav className="bg-gray-800 text-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between h-16 items-center">  
           {/* Logo o nombre */}
           <div className="flex items-center">
             <span className="text-xl font-bold">🛒 Tlapalería</span>
