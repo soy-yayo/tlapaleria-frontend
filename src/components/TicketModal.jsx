@@ -33,16 +33,13 @@ function  TicketModal({ venta, productos, onClose }) {
   const generarPDF = () => {
   const doc = new jsPDF({ unit: "mm", format: [58, 200] });
 
-  // Layout base (reemplaza estas líneas al inicio del generarPDF)
 const pageW = doc.internal.pageSize.getWidth();
 
-// La mayoría de 58mm imprimen ~48mm útiles
-const PRINTABLE = 48;                 // si tu impresora deja márgenes, bájalo a 47 o 46
+const PRINTABLE = 46;
 const M = (pageW - PRINTABLE) / 2;    // ≈ 5 mm por lado
 const W = PRINTABLE;
 const Xc = pageW / 2;
 let y = M;
-                         // cursor vertical
 
   // Helpers
   const money = (n) =>
