@@ -32,7 +32,7 @@ function TicketModal({ venta, productos, onClose }) {
 
     const pageW = doc.internal.pageSize.getWidth();
     const PRINTABLE = 46;
-    const ML = 2;
+    const ML = 1;
     const MR = pageW - ML - PRINTABLE;
     const W = PRINTABLE;
     const Xc = ML + W / 2;
