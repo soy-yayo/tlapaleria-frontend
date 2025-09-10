@@ -18,7 +18,8 @@ function EditarProducto() {
     proveedor_id: '',
     precio_compra: '',
     precio_venta: '',
-    imagen: ''
+    imagen: '',
+    clave_sat: ''
   });
 
   const [imagen, setImagen] = useState(null);
@@ -108,7 +109,8 @@ function EditarProducto() {
           ['ubicacion', 'Ubicación'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
-          ['precio_compra', 'Precio de compra']
+          ['precio_compra', 'Precio de compra'],
+          ['clave_sat', 'Clave SAT']
         ].map(([name, label]) => (
           <div key={name}>
             <label className="block text-sm font-medium mb-1">{label}:</label>

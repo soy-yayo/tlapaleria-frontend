@@ -82,11 +82,12 @@ function Productos() {
       p.ubicacion,
       p.cantidad_stock,
       `$${Number(p.precio_venta ?? 0).toFixed(2)}`,
-      p.nombre_proveedor
+      p.nombre_proveedor,
+      p.clave_sat || ''
     ]);
 
     autoTable(doc, {
-      head: [['Código', 'Descripción', 'Ubicación', 'Stock', 'Precio Venta', 'Proveedor']],
+      head: [['Código', 'Descripción', 'Ubicación', 'Stock', 'Precio Venta', 'Proveedor', 'Clave SAT']],
       body: tabla,
       startY: 20,
       styles: { fontSize: 10 }
@@ -108,7 +109,8 @@ function Productos() {
       Ubicación: p.ubicacion,
       Stock: p.cantidad_stock,
       'Precio Venta': Number(p.precio_venta ?? 0),
-      Proveedor: p.nombre_proveedor
+      Proveedor: p.nombre_proveedor,
+      'Clave SAT': p.clave_sat || ''
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
@@ -219,6 +221,7 @@ function Productos() {
               <p className="text-sm text-gray-600">Stock: {p.cantidad_stock}</p>
               <p className="text-sm text-gray-600">Ubicación: {p.ubicacion}</p>
               <p className="text-sm text-gray-600 font-bold">Precio: ${Number(p.precio_venta ?? 0).toFixed(2)}</p>
+              <p className="text-sm text-gray-600">Clave SAT: {p.clave_sat || ''}</p>
 
               {/* Info extra solo para admin */}
               {usuario?.rol === 'admin' && (
@@ -278,6 +281,7 @@ function Productos() {
             <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
             <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
             <p><strong>Precio:</strong> ${Number(productoSeleccionado.precio_venta ?? 0).toFixed(2)}</p>
+            <p><strong>Clave SAT:</strong> {productoSeleccionado.clave_sat || ''}</p>
 
             {/* Campos extras solo para admin */}
             {usuario?.rol === 'admin' && (

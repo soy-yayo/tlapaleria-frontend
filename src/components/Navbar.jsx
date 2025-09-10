@@ -24,7 +24,7 @@ function Navbar() {
     { to: '/ventas/historial', label: 'Historial de Ventas' },
     { to: '/proveedores', label: 'Proveedores', admin: true },
     { to: '/corte-caja', label: 'Corte de Caja', admin: true },
-    { to: '/porcentajes-de-utilidad', label: 'Calculadora de Utilidad' },
+    { to: '/porcentajes-de-utilidad', label: 'Calculadora de Utilidad', admin : true },
   ];
 
   return (

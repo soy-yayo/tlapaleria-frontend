@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import API from "../services/api"; // ajusta la ruta a donde tengas tu api.js
-
-let rangosGlobal = []; // Variable global para compartir en otros módulos
+import API from "../services/api";
+let rangosGlobal = [];
 
 export function getRangos() {
   return rangosGlobal;
@@ -28,7 +27,6 @@ export default function PorcentajesDeUtilidad() {
   });
   const [editando, setEditando] = useState(null);
 
-  // Cargar rangos desde backend al montar
   useEffect(() => {
     const token = localStorage.getItem("token");
     API.get("/rangos", { headers: { Authorization: `Bearer ${token}` } })
@@ -36,7 +34,6 @@ export default function PorcentajesDeUtilidad() {
       .catch(() => setRangos([]));
   }, []);
 
-  // Mantener variable global sincronizada
   useEffect(() => {
     rangosGlobal = [...rangos];
   }, [rangos]);
@@ -56,8 +53,7 @@ export default function PorcentajesDeUtilidad() {
     const { name, value } = e.target;
     setNuevoRango((prev) => ({ ...prev, [name]: value }));
   };
-
-  // Crear o editar
+  // Guardar (crear o editar)
   const handleGuardarRango = async (e) => {
     e.preventDefault();
     const min = parseFloat(nuevoRango.min);

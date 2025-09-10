@@ -13,7 +13,8 @@ function AgregarProducto() {
     cantidad_stock: '',
     proveedor_id: '',
     precio_compra: '',
-    precio_venta: ''
+    precio_venta: '',
+    clave_sat: ''
   });
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
@@ -98,7 +99,8 @@ function AgregarProducto() {
           ['ubicacion', 'Ubicación'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
-          ['precio_compra', 'Precio de compra']
+          ['precio_compra', 'Precio de compra'],
+          ['clave_sat', 'Clave SAT']
         ].map(([name, label]) => (
           <div key={name}>
             <label className="block text-sm font-medium mb-1">{label}:</label>
