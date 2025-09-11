@@ -133,7 +133,7 @@ function HistorialVentas() {
               <td className="p-2">{new Date(v.fecha).toLocaleDateString()}</td>
               <td className="p-2">${v.total}</td>
               <td className="p-2">{v.forma_pago}</td>
-              <td className="p-2">{v.usuario}</td>
+              <td className="p-2">{v.nombre_vendedor}</td>
               <td className="p-2">
                 <button
                   onClick={() => verTicket(v)}

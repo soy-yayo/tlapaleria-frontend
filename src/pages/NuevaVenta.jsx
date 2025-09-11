@@ -113,7 +113,7 @@ function NuevaVenta() {
         fecha: new Date(),
         forma_pago: formaPago,
         total: total.toFixed(2),
-        usuario: usuario.nombre
+        nombre_vendedor: usuario.nombre, // Agregar el nombre del vendedor
       });
 
       setProductosVendidos(detalles.data);

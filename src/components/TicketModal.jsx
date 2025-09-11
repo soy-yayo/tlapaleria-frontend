@@ -85,7 +85,7 @@ function TicketModal({ venta, productos, onClose }) {
     y += 4;
     doc.text('Cliente: Público en General', ML, y);
     y += 3.5;
-    doc.text(`Vendedor: ${venta.usuario}`, ML, y);
+    doc.text(`Vendedor: ${venta.nombre_vendedor}`, ML, y);
 
     y += 3.5;
     hr(2);
@@ -178,7 +178,7 @@ function TicketModal({ venta, productos, onClose }) {
         <h2 className="text-xl font-bold mb-4">Ticket de Venta #{venta.id}</h2>
         <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
         <p><strong>Forma de pago:</strong> {venta.forma_pago}</p>
-        <p><strong>Vendedor:</strong> {venta.usuario}</p>
+        <p><strong>Vendedor:</strong> {venta.nombre_vendedor}</p>
         <hr className="my-3" />
         <ul className="text-sm">
           {productos.map((p, i) => (
