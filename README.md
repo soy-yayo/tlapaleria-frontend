@@ -74,6 +74,15 @@ frontend/
 
 - Exportación a PDF/Excel.
 
+## Inventario de productos
+
+- Permite filtrar por código, descripción, proveedor, ubicación y estado de stock (Stock bajo / Stock = 0).
+
+- Exportación de productos a PDF y Excel (incluye todos los campos visibles en tabla).
+
+- Se añadieron cálculos automáticos de **Importe total de compra** y **Importe total de venta** en base al stock actual (`cantidad_stock × precio_compra` y `cantidad_stock × precio_venta`).
+
+
 ### NuevaVenta.jsx
 
 - POS: búsqueda de productos, selección de cantidad, formas de pago.

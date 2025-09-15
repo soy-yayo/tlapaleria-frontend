@@ -17,6 +17,7 @@ import EditarUsuario from './pages/EditarUsuario';
 import AccesoDenegado from './components/AccesoDenegado';
 import CorteCaja from './pages/CorteCaja';
 import PorcentajesDeUtilidad from './pages/PorcentajesDeUtilidad';
+import Inventario from './pages/Inventario';
 
 function LayoutPrivado({ children }) {
   return (
@@ -38,6 +39,11 @@ function App() {
             <AccesoDenegado/>
             }
           />
+          <Route path="/inventario" element={
+            <PrivateRoute>
+              <LayoutPrivado><Inventario /></LayoutPrivado>
+            </PrivateRoute>
+          } />
           <Route
             path="/usuarios"
             element={
