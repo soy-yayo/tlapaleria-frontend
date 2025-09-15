@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
@@ -76,7 +77,7 @@ function Inventario() {
       `$${Number(p.precio_venta ?? 0).toFixed(2)}`,
     ]);
     autoTable(doc, {
-      head: [['Código', 'Descripción', 'Proveedor', 'Ubicación', 'Stock', 'Stock Faltante', 'Precio Compra', 'Precio Venta', 'Clave SAT']],
+      head: [['Código', 'Descripción', 'Proveedor', 'Ubicación', 'Stock', 'Stock Faltante', 'Precio Compra', 'Precio Venta']],
       body: tabla,
       startY: 20,
       styles: { fontSize: 10 }
@@ -193,7 +194,7 @@ function Inventario() {
                 <td className="border px-4 py-2 text-right">${Number(producto.precio_compra ?? 0).toFixed(2)}</td>
                 <td className="border px-4 py-2 text-right">${Number(producto.precio_venta ?? 0).toFixed(2)}</td>
                 <td className="border px-4 py-2">
-                  <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">Editar</button>
+                  <Link to={`/productos/editar/${producto.id}`} className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">Editar</Link>
                 </td>
                 <td className="border px-4 py-2">
                   {usuario?.rol === 'admin' && (
@@ -210,10 +211,20 @@ function Inventario() {
           </tbody>
         </table>
       </div>
-        <div className='flex justify-between mt-4 w-full px-2'> 
-          <span>Importe total compra: ${totalCompra.toFixed(2)}</span>
-          <span>Importe total venta: ${totalVenta.toFixed(2)}</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="p-4 rounded-lg shadow bg-blue-50 border border-blue-200">
+          <h2 className="text-lg font-semibold text-blue-800">Importe total de compra</h2>
+          <p className="text-2xl font-bold text-blue-900 mt-2">
+            ${totalCompra.toFixed(2)}
+          </p>
         </div>
+        <div className="p-4 rounded-lg shadow bg-green-50 border border-green-200">
+          <h2 className="text-lg font-semibold text-green-800">Importe total de venta</h2>
+          <p className="text-2xl font-bold text-green-900 mt-2">
+            ${totalVenta.toFixed(2)}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
