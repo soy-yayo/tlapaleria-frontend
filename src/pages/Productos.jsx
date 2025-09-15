@@ -227,6 +227,7 @@ function Productos() {
                 <>
                   <p className="text-sm text-gray-600 font-bold">Precio compra: {p.precio_compra}</p>
                   <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
+                  <p className="text-sm text-gray-600">Stock máximo: {p.stock_maximo}</p>
                 </>
               )}
 
@@ -287,6 +288,7 @@ function Productos() {
               <>
                 <p><strong>Precio compra: </strong>${Number(productoSeleccionado.precio_compra ?? 0).toFixed(2)}</p>
                 <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
+                <p><strong>Stock máximo:</strong> {productoSeleccionado.stock_maximo}</p>
                 <div className="flex mt-2 gap-2">
                   <Link
                     to={`/productos/editar/${productoSeleccionado.id}`}
