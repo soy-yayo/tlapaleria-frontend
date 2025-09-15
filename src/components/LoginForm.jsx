@@ -9,61 +9,64 @@ function LoginForm() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // evita recargar la página
+    e.preventDefault();
 
     try {
-      const res = await API.post('/login', {
-        usuario,
-        contraseña
-      });
+      const res = await API.post('/login', { usuario, contraseña });
 
-      localStorage.setItem('token', res.data.token); // guarda token
-      localStorage.setItem('usuario', JSON.stringify(res.data.usuario)); // guarda usuario
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('usuario', JSON.stringify(res.data.usuario));
       toast.success('Inicio de sesión exitoso');
-      navigate('/productos'); // redirige a página de productos
+      navigate('/productos');
     } catch (err) {
       toast.error('Error al iniciar sesión');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}
-      className='border border-gray-300 rounded p-4 mx-auto mt-10 max-w-md bg-white shadow-lg flex flex-col gap-2'
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-md bg-white border rounded-xl shadow p-6 flex flex-col gap-4"
     >
-      <h2 className='text-2xl font-bold text-center mb-4'>
-        Iniciar Sesión
-      </h2>
-      <label className='flex flex-col mb-2'>
-        Usuario:
+      <h2 className="text-2xl font-bold text-center mb-2">🔑 Iniciar Sesión</h2>
+
+      {/* Usuario */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Usuario
+        </label>
         <input
           type="text"
           value={usuario}
           onChange={(e) => setUsuario(e.target.value)}
           required
-          className='border border-gray-300 rounded mr-0.5'
+          className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         />
-      </label>
+      </div>
 
-      <label className='flex flex-col mb-2'>
-        Contraseña:
+      {/* Contraseña */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Contraseña
+        </label>
         <input
           type="password"
           value={contraseña}
           onChange={(e) => setContraseña(e.target.value)}
           required
-          className='border border-gray-300 rounded'
+          className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         />
-      </label>
+      </div>
 
+      {/* Botón */}
       <button
         type="submit"
-        className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl transition"
       >
         Entrar
       </button>
     </form>
   );
-
 }
 
 export default LoginForm;

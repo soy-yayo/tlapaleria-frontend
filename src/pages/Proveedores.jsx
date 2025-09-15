@@ -67,46 +67,60 @@ function Proveedores() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Proveedores</h2>
-      <table className="w-full border border-gray-300">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-4 py-2">ID</th>
-            <th className="border px-4 py-2">Nombre</th>
-          </tr>
-        </thead>
-        <tbody>
-          {proveedores.map((p) => (
-            <tr key={p.id}>
-              <td className="border px-4 py-2">{p.id}</td>
-              <td className="border px-4 py-2">{p.nombre}</td>
-              <td className="border px-4 py-2 text-center">
-                <button
-                  onClick={() => handleEliminarProveedor(p.id)}
-    className="bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1 rounded shadow transition duration-200"
-                >
-                  Eliminar
-                </button>
-              </td>
+    <div className="max-w-3xl mx-auto mt-10 bg-white border rounded-xl shadow p-6">
+      <h2 className="text-2xl font-bold mb-6">🏭 Proveedores</h2>
+
+      {/* Tabla */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-separate border-spacing-0">
+          <thead className="sticky top-0 bg-slate-100 text-slate-600 text-sm">
+            <tr>
+              <th className="p-3 text-left">ID</th>
+              <th className="p-3 text-left">Nombre</th>
+              <th className="p-3 text-center">Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold">Agregar proveedor</h3>
+          </thead>
+          <tbody className="text-sm">
+            {proveedores.map((p) => (
+              <tr key={p.id} className="odd:bg-slate-50 hover:bg-slate-100">
+                <td className="p-3">{p.id}</td>
+                <td className="p-3">{p.nombre}</td>
+                <td className="p-3 text-center">
+                  <button
+                    onClick={() => handleEliminarProveedor(p.id)}
+                    className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-medium hover:bg-rose-600 transition"
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {proveedores.length === 0 && (
+              <tr>
+                <td colSpan="3" className="p-4 text-center text-slate-400">
+                  No hay proveedores registrados.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Formulario agregar */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-3">➕ Agregar proveedor</h3>
         <form onSubmit={handleAgregarProveedor} className="flex gap-2">
           <input
             type="text"
             placeholder="Nombre del proveedor"
-            className="border border-gray-300 p-2 rounded"
+            className="flex-1 rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
             value={nuevoProveedor}
             onChange={(e) => setNuevoProveedor(e.target.value)}
             required
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
           >
             Agregar
           </button>

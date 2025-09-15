@@ -53,7 +53,7 @@ export default function PorcentajesDeUtilidad() {
     const { name, value } = e.target;
     setNuevoRango((prev) => ({ ...prev, [name]: value }));
   };
-  // Guardar (crear o editar)
+
   const handleGuardarRango = async (e) => {
     e.preventDefault();
     const min = parseFloat(nuevoRango.min);
@@ -66,18 +66,14 @@ export default function PorcentajesDeUtilidad() {
 
     try {
       if (editando) {
-        // Editar
         const res = await API.put(
           `/rangos/${editando}`,
           { min, max, porcentaje },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setRangos(
-          rangos.map((r) => (r.id === editando ? res.data : r))
-        );
+        setRangos(rangos.map((r) => (r.id === editando ? res.data : r)));
         setEditando(null);
       } else {
-        // Crear
         const res = await API.post(
           "/rangos",
           { min, max, porcentaje },
@@ -85,14 +81,12 @@ export default function PorcentajesDeUtilidad() {
         );
         setRangos([...rangos, res.data]);
       }
-
       setNuevoRango({ min: "", max: "", porcentaje: "" });
     } catch (err) {
       console.error("Error al guardar rango:", err);
     }
   };
 
-  // Cargar datos en el formulario para editar
   const handleEditar = (rango) => {
     setNuevoRango({
       min: rango.min,
@@ -102,7 +96,6 @@ export default function PorcentajesDeUtilidad() {
     setEditando(rango.id);
   };
 
-  // Eliminar
   const handleEliminar = async (id) => {
     if (!window.confirm("¿Seguro que deseas eliminar este rango?")) return;
     try {
@@ -117,51 +110,58 @@ export default function PorcentajesDeUtilidad() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 border rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">
-        Calculadora de Precio de Venta
-      </h2>
+    <div className="max-w-lg mx-auto mt-10 bg-white border rounded-xl shadow p-6">
+      <h2 className="text-2xl font-bold mb-6 text-center">📊 Calculadora de Utilidad</h2>
 
-      <label className="block mb-4">
-        <span className="text-sm font-medium">Precio de compra:</span>
+      {/* Precio compra */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Precio de compra
+        </label>
         <input
           type="number"
           value={precioCompra}
           onChange={handleChange}
           min="0"
           step="0.01"
-          className="mt-1 block w-full border rounded px-3 py-2 text-sm focus:ring focus:ring-blue-200"
+          className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         />
-      </label>
+      </div>
 
+      {/* Resultado */}
       {precioVenta !== null && (
         <div className="mb-6 text-green-700 font-medium">
-          Precio de venta sugerido: ${precioVenta}
+          Precio de venta sugerido:{" "}
+          <span className="font-bold">${precioVenta}</span>
         </div>
       )}
 
-      <h4 className="font-medium mb-2">
-        {editando ? "Editar rango" : "Agregar nuevo rango"}:
-      </h4>
-      <form onSubmit={handleGuardarRango} className="flex flex-wrap gap-2 mb-6">
+      {/* Formulario de rangos */}
+      <h3 className="font-semibold mb-2">
+        {editando ? "✏️ Editar rango" : "➕ Agregar rango"}
+      </h3>
+      <form
+        onSubmit={handleGuardarRango}
+        className="flex flex-wrap items-center gap-2 mb-6"
+      >
         <input
           type="number"
           name="min"
-          placeholder="Mínimo"
+          placeholder="Mín"
           value={nuevoRango.min}
           onChange={handleNuevoRangoChange}
           step="0.01"
           required
-          className="w-20 border rounded px-2 py-1 text-sm"
+          className="w-24 rounded-xl border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
         />
         <input
           type="text"
           name="max"
-          placeholder="Máximo (o Infinity)"
+          placeholder="Máx o ∞"
           value={nuevoRango.max}
           onChange={handleNuevoRangoChange}
           required
-          className="w-28 border rounded px-2 py-1 text-sm"
+          className="w-28 rounded-xl border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
         />
         <input
           type="number"
@@ -171,11 +171,11 @@ export default function PorcentajesDeUtilidad() {
           onChange={handleNuevoRangoChange}
           step="0.01"
           required
-          className="w-20 border rounded px-2 py-1 text-sm"
+          className="w-20 rounded-xl border border-slate-300 px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+          className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
         >
           {editando ? "Actualizar" : "Agregar"}
         </button>
@@ -186,25 +186,28 @@ export default function PorcentajesDeUtilidad() {
               setNuevoRango({ min: "", max: "", porcentaje: "" });
               setEditando(null);
             }}
-            className="bg-gray-400 text-white px-3 py-1 rounded text-sm hover:bg-gray-500"
+            className="px-3 py-1.5 rounded-xl bg-slate-400 text-white text-sm hover:bg-slate-500 transition"
           >
             Cancelar
           </button>
         )}
       </form>
 
-      <h4 className="font-medium mb-2">Rangos de utilidad:</h4>
+      {/* Lista de rangos */}
+      <h3 className="font-semibold mb-2">📈 Rangos de utilidad</h3>
       <ul className="space-y-1 text-sm">
         {rangos.map((r) => (
           <li
             key={r.id}
-            className="flex justify-between items-center border-b py-1"
+            className="flex justify-between items-center border-b py-2"
           >
             <span>
               {r.min} – {r.max === Infinity ? "∞" : r.max}:{" "}
-              <span className="font-semibold">{r.porcentaje}%</span>
+              <span className="font-semibold text-blue-600">
+                {r.porcentaje}%
+              </span>
             </span>
-            <span className="flex gap-2">
+            <span className="flex gap-3">
               <button
                 onClick={() => handleEditar(r)}
                 className="text-blue-600 hover:underline text-xs"
@@ -213,13 +216,16 @@ export default function PorcentajesDeUtilidad() {
               </button>
               <button
                 onClick={() => handleEliminar(r.id)}
-                className="text-red-600 hover:underline text-xs"
+                className="text-rose-600 hover:underline text-xs"
               >
                 Eliminar
               </button>
             </span>
           </li>
         ))}
+        {rangos.length === 0 && (
+          <li className="text-slate-400 text-sm">No hay rangos registrados.</li>
+        )}
       </ul>
     </div>
   );

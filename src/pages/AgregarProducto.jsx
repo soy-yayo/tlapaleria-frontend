@@ -18,7 +18,7 @@ function AgregarProducto() {
   });
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
-  const [productos, setProductos] = useState([]); // ⬅️ Guardar productos existentes
+  const [productos, setProductos] = useState([]);
 
   const usuario = JSON.parse(localStorage.getItem('usuario'));
 
@@ -32,7 +32,6 @@ function AgregarProducto() {
       return;
     }
 
-    // Cargar proveedores y productos existentes
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -90,9 +89,11 @@ function AgregarProducto() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-      <h2 className="text-xl font-bold mb-4 text-center">Agregar nuevo producto</h2>
-      <form onSubmit={handleSubmit} className="grid gap-4">
+    <div className="max-w-lg mx-auto mt-10 bg-white border rounded-xl shadow p-6">
+      <h2 className="text-2xl font-bold mb-6 text-center">➕ Agregar producto</h2>
+
+      <form onSubmit={handleSubmit} className="grid gap-5">
+        {/* Campos de texto */}
         {[
           ['codigo', 'Código'],
           ['descripcion', 'Descripción'],
@@ -100,54 +101,57 @@ function AgregarProducto() {
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
           ['precio_compra', 'Precio de compra'],
+          ['precio_venta', 'Precio de venta'],
           ['clave_sat', 'Clave SAT']
         ].map(([name, label]) => (
           <div key={name}>
-            <label className="block text-sm font-medium mb-1">{label}:</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
             <input
               type="text"
               name={name}
               value={form[name]}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         ))}
 
+        {/* Proveedor */}
         <div>
-          <label className="block text-sm font-medium mb-1">Proveedor:</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor</label>
           <select
             name="proveedor_id"
             value={form.proveedor_id}
             onChange={handleChange}
             required
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           >
             <option value="">Seleccione un proveedor</option>
             {proveedores.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nombre}
-              </option>
+              <option key={p.id} value={p.id}>{p.nombre}</option>
             ))}
           </select>
         </div>
 
+        {/* Imagen */}
         <div>
-          <label className="block text-sm font-medium mb-1">Imagen:</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Imagen</label>
           <input
             type="file"
             name="imagen"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
+
+        {/* Botón */}
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-xl transition disabled:opacity-50"
         >
-          Guardar
+          Guardar producto
         </button>
       </form>
     </div>

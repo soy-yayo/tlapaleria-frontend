@@ -25,60 +25,62 @@ function Navbar() {
     { to: '/ventas/historial', label: 'Historial de Ventas' },
     { to: '/proveedores', label: 'Proveedores', admin: true },
     { to: '/corte-caja', label: 'Corte de Caja', admin: true },
-    { to: '/porcentajes-de-utilidad', label: 'Calculadora de Utilidad', admin : true },
+    { to: '/porcentajes-de-utilidad', label: 'Calculadora de Utilidad', admin: true },
   ];
 
   return (
-    <nav className="bg-gray-800 text-white shadow">
+    <nav className="bg-white border-b shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">  
-          {/* Logo o nombre */}
+        <div className="flex justify-between h-14 items-center">
+          {/* Logo */}
           <div className="flex items-center">
-            <span className="text-xl font-bold">🛒 Tlapalería</span>
+            <span className="text-lg font-bold text-blue-600">🛒 Tlapalería</span>
           </div>
 
           {/* Menú desktop */}
           <div className="hidden md:flex gap-6">
-            {/* Menú desktop */}
-            <div className="hidden md:flex gap-6">
-              {navLinks.map((link) =>
-                (!link.admin || usuario?.rol === 'admin') &&
-                (link.newTab ? (
-                  <a
-                    key={link.to}
-                    href={link.to}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`font-medium hover:underline ${location.pathname === link.to ? 'text-yellow-400' : ''
-                      }`}
-                  >
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className={`font-medium hover:underline ${location.pathname === link.to ? 'text-yellow-400' : ''
-                      }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))
-              )}
-            </div>
-
+            {navLinks.map((link) =>
+              (!link.admin || usuario?.rol === 'admin') &&
+              (link.newTab ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-sm font-medium transition ${
+                    location.pathname === link.to
+                      ? 'text-green-600 font-semibold'
+                      : 'text-slate-700 hover:text-blue-600'
+                  }`}
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`text-sm font-medium transition ${
+                    location.pathname === link.to
+                      ? 'text-green-600 font-semibold'
+                      : 'text-slate-700 hover:text-blue-600'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))
+            )}
           </div>
 
           {/* Usuario + logout */}
           <div className="hidden md:flex items-center gap-4">
             {usuario && (
-              <span className="text-sm">
+              <span className="text-sm text-slate-600">
                 {usuario.usuario} ({usuario.rol})
               </span>
             )}
             <button
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm"
+              className="px-3 py-1.5 rounded-xl bg-rose-500 text-white text-sm hover:bg-rose-600 transition"
             >
               Cerrar sesión
             </button>
@@ -86,16 +88,16 @@ function Navbar() {
 
           {/* Botón menú móvil */}
           <div className="md:hidden">
-            <button onClick={() => setMenuOpen(!menuOpen)}>
+            <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded hover:bg-slate-100">
               {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Menú móvil desplegable */}
+      {/* Menú móvil */}
       {menuOpen && (
-        <div className="md:hidden bg-gray-700 px-4 py-3 space-y-2">
+        <div className="md:hidden bg-slate-50 border-t shadow-inner px-4 py-3 space-y-2">
           {navLinks.map(
             (link) =>
               (!link.admin || usuario?.rol === 'admin') && (
@@ -103,8 +105,11 @@ function Navbar() {
                   key={link.to}
                   to={link.to}
                   onClick={() => setMenuOpen(false)}
-                  className={`block hover:underline ${location.pathname === link.to ? 'text-yellow-400' : ''
-                    }`}
+                  className={`block py-2 rounded ${
+                    location.pathname === link.to
+                      ? 'text-green-600 font-semibold'
+                      : 'text-slate-700 hover:text-blue-600'
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -112,14 +117,14 @@ function Navbar() {
           )}
 
           {usuario && (
-            <p className="mt-2 text-sm">
+            <p className="mt-3 text-sm text-slate-600">
               {usuario.usuario} ({usuario.rol})
             </p>
           )}
 
           <button
             onClick={handleLogout}
-            className="mt-2 w-full bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm"
+            className="mt-3 w-full px-3 py-2 rounded-xl bg-rose-500 text-white text-sm hover:bg-rose-600 transition"
           >
             Cerrar sesión
           </button>

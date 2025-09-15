@@ -12,9 +12,11 @@ function LogoutButton() {
   };
 
   return (
-    <button onClick={handleLogout} 
-    className="float-right inline-block mb-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-      Cerrar sesión
+    <button
+      onClick={handleLogout}
+      className="px-4 py-2 rounded-xl bg-rose-600 text-white text-sm font-medium hover:bg-rose-700 transition flex items-center gap-2"
+    >
+      🚪 Cerrar sesión
     </button>
   );
 }

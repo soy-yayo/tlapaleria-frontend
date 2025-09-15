@@ -171,32 +171,66 @@ function TicketModal({ venta, productos, onClose }) {
     doc.save(`venta_${venta.id}.pdf`);
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-md relative">
-        <button className="absolute top-2 right-3 text-gray-600" onClick={onClose}>✖</button>
-        <h2 className="text-xl font-bold mb-4">Ticket de Venta #{venta.id}</h2>
-        <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
-        <p><strong>Forma de pago:</strong> {venta.forma_pago}</p>
-        <p><strong>Vendedor:</strong> {venta.nombre_vendedor}</p>
+   return (
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white border rounded-xl shadow-lg p-6 w-full max-w-md relative">
+        {/* Botón cerrar */}
+        <button
+          className="absolute top-3 right-4 text-slate-500 hover:text-black text-lg"
+          onClick={onClose}
+        >
+          ✖
+        </button>
+
+        {/* Encabezado */}
+        <h2 className="text-xl font-bold mb-4 text-center">
+          🧾 Ticket de Venta #{venta.id}
+        </h2>
+
+        {/* Info básica */}
+        <div className="text-sm space-y-1 mb-4">
+          <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
+          <p><strong>Forma de pago:</strong> {venta.forma_pago}</p>
+          <p><strong>Vendedor:</strong> {venta.nombre_vendedor}</p>
+        </div>
+
         <hr className="my-3" />
-        <ul className="text-sm">
+
+        {/* Lista productos */}
+        <ul className="text-sm divide-y">
           {productos.map((p, i) => (
-            <li key={i} className="mb-2">
-              <div>{p.descripcion}</div>
-              <div className="flex justify-between text-xs">
+            <li key={i} className="py-2">
+              <div className="font-medium">{p.descripcion}</div>
+              <div className="flex justify-between text-xs text-slate-600">
                 <span>Cant: {p.cantidad}</span>
                 <span>P.Unit: ${p.precio_unitario}</span>
-                <span>Subt: {(p.cantidad * p.precio_unitario).toFixed(2)}</span>
+                <span>Subt: ${(p.cantidad * p.precio_unitario).toFixed(2)}</span>
               </div>
             </li>
           ))}
         </ul>
+
         <hr className="my-3" />
-        <p className="font-bold text-right">Total: ${venta.total}</p>
-        <div className="mt-4 flex justify-between">
-          <button onClick={generarPDF} className="bg-blue-600 text-white px-4 py-2 rounded">Exportar PDF</button>
-          <button onClick={() => window.print()} className="bg-gray-500 text-white px-4 py-2 rounded">Imprimir</button>
+
+        {/* Total */}
+        <p className="font-bold text-right text-lg text-blue-700">
+          Total: ${venta.total}
+        </p>
+
+        {/* Acciones */}
+        <div className="mt-5 flex justify-between">
+          <button
+            onClick={generarPDF}
+            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+          >
+            Exportar PDF
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="px-4 py-2 rounded-xl bg-slate-600 text-white text-sm font-medium hover:bg-slate-700 transition"
+          >
+            Imprimir
+          </button>
         </div>
       </div>
     </div>

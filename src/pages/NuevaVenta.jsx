@@ -3,6 +3,7 @@ import API from '../services/api';
 import { toast } from 'react-toastify';
 import TicketModal from '../components/TicketModal';
 import { useNavigate } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 
 function NuevaVenta() {
   const [productos, setProductos] = useState([]);
@@ -15,7 +16,6 @@ function NuevaVenta() {
   const [productosVendidos, setProductosVendidos] = useState([]);
 
   const navigate = useNavigate();
-
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -29,11 +29,9 @@ function NuevaVenta() {
         toast.error('Error al cargar productos');
       }
     };
-
     cargarProductos();
   }, []);
 
-  // === Normalización igual que en NuevaVenta.jsx ===
   function normalizarTexto(texto = '') {
     return String(texto)
       .normalize('NFD')
@@ -41,15 +39,10 @@ function NuevaVenta() {
       .toLowerCase();
   }
 
-  // === Filtros + búsqueda flexible ===
   const productosFiltrados = productos.filter((p) => {
     const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
-
-    const coincideBusqueda =
-      palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
-
-    return coincideBusqueda;
+    return palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
   });
 
   const agregarAlTicket = (producto) => {
@@ -57,10 +50,9 @@ function NuevaVenta() {
     if (existe) {
       const nuevaCantidad = existe.cantidad + 1;
       actualizarCantidad(producto.id, nuevaCantidad);
-      toast.info('Este producto ya está en el ticket');
+      toast.info('Cantidad actualizada en el ticket');
       return;
     }
-
     setTicket([...ticket, { ...producto, cantidad: 1 }]);
   };
 
@@ -74,70 +66,48 @@ function NuevaVenta() {
     setTicket(ticket.filter(p => p.id !== id));
   };
 
-  const total = ticket.reduce(
-    (acc, item) => acc + item.cantidad * item.precio_venta,
-    0
-  );
+  const total = ticket.reduce((acc, item) => acc + item.cantidad * item.precio_venta, 0);
 
   const confirmarVenta = async () => {
     if (ticket.length === 0) return;
-
     const sinStock = ticket.find(p => p.cantidad > p.cantidad_stock);
-    if (sinStock) {
-      return toast.error(`No hay suficiente stock de "${sinStock.descripcion}"`);
-    }
+    if (sinStock) return toast.error(`No hay suficiente stock de "${sinStock.descripcion}"`);
 
-    const token = localStorage.getItem('token');
     const usuario = JSON.parse(localStorage.getItem('usuario'));
-
     try {
       const res = await API.post('/ventas', {
         forma_pago: formaPago,
-        productos: ticket.map(p => ({
-          id: p.id,
-          cantidad: p.cantidad,
-        })),
-        // usuario_id: usuario.id 
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+        productos: ticket.map(p => ({ id: p.id, cantidad: p.cantidad }))
+      }, { headers: { Authorization: `Bearer ${token}` } });
 
       const ventaId = res.data.venta_id;
-
-      const detalles = await API.get(`/ventas/${ventaId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const detalles = await API.get(`/ventas/${ventaId}`, { headers: { Authorization: `Bearer ${token}` } });
 
       setVentaFinalizada({
         id: ventaId,
         fecha: new Date(),
         forma_pago: formaPago,
         total: total.toFixed(2),
-        nombre_vendedor: usuario.nombre, // Agregar el nombre del vendedor
+        nombre_vendedor: usuario.nombre,
       });
-
       setProductosVendidos(detalles.data);
       setMostrarTicket(true);
       toast.success(`Venta registrada con ID ${ventaId}`);
       setTicket([]);
       setBusqueda('');
-      // navigate('/productos');
     } catch (error) {
-      console.error(error);
       toast.error('Error al registrar la venta');
     }
   };
 
-
-
   return (
-    <div className="max-w-6xl mx-auto p-4">
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md shadow-md p-4 rounded-b-lg">
-        <h1 className="text-2xl font-bold mb-4 text-center">Nueva Venta</h1>
-        <div className="flex flex-col sm:flex-row gap-4">
+    <div className="page py-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Columna izquierda: catálogo */}
+      <div className="md:col-span-2">
+        <div className="mb-4">
           <input
             type="text"
-            placeholder="Buscar producto..."
+            placeholder="🔍 Buscar producto por código o descripción"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             onKeyDown={(e) => {
@@ -154,50 +124,76 @@ function NuevaVenta() {
                 setBusqueda('');
               }
             }}
-            className="border border-gray-300 px-3 py-2 rounded w-full shadow-sm focus:ring focus:ring-blue-300 outline-none"
+            className="w-full rounded-xl border px-4 py-3 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
 
-        <h2 className="text-xl font-semibold mb-2 mt-2">Ticket de venta</h2>
-        <div className="overflow-auto mb-4">
-          <table className="min-w-full text-left border border-gray-300">
-            <thead className="bg-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {productosFiltrados.map((producto) => (
+            <div
+              key={producto.id}
+              className="bg-white border rounded-xl p-3 shadow hover:shadow-md cursor-pointer transition"
+              onClick={() => agregarAlTicket(producto)}
+            >
+              {producto.imagen && (
+                <img
+                  src={producto.imagen}
+                  alt={producto.descripcion}
+                  className="w-full h-32 object-cover rounded mb-2"
+                />
+              )}
+              <h3 className="font-semibold text-sm">{producto.descripcion}</h3>
+              <p className="text-xs text-slate-500">Código: {producto.codigo}</p>
+              <p className="text-sm font-bold text-blue-600">${producto.precio_venta}</p>
+              <p className="text-xs text-slate-500">Stock: {producto.cantidad_stock}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Columna derecha: ticket */}
+      <aside className="bg-white border rounded-xl p-4 shadow h-fit md:sticky md:top-6">
+        <h2 className="text-lg font-bold mb-3">🧾 Ticket de venta</h2>
+
+        <div className="overflow-auto max-h-64 mb-3">
+          <table className="w-full text-sm">
+            <thead className="text-slate-500 border-b">
               <tr>
-                <th className="p-2">Producto</th>
-                <th className="p-2">Cantidad</th>
-                <th className="p-2">Precio</th>
-                <th className="p-2">Subtotal</th>
-                <th className="p-2"></th>
+                <th className="p-2 text-left">Producto</th>
+                <th className="p-2 text-center">Cant.</th>
+                <th className="p-2 text-right">Subtotal</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {ticket.map((item) => (
-                <tr key={item.id} className="border-t">
+                <tr key={item.id} className="border-b last:border-0">
                   <td className="p-2">{item.descripcion}</td>
-                  <td className="p-2">
+                  <td className="p-2 text-center">
                     <input
                       type="number"
                       value={item.cantidad}
                       min="1"
                       onChange={(e) => actualizarCantidad(item.id, e.target.value)}
-                      className="w-16 border px-2 py-1 rounded"
+                      className="w-14 rounded border text-center"
                     />
                   </td>
-                  <td className="p-2">${item.precio_venta}</td>
-                  <td className="p-2">${item.precio_venta * item.cantidad}</td>
-                  <td className="p-2">
+                  <td className="p-2 text-right">
+                    ${(item.precio_venta * item.cantidad).toFixed(2)}
+                  </td>
+                  <td className="p-2 text-right">
                     <button
                       onClick={() => eliminarDelTicket(item.id)}
-                      className="bg-red-600 text-white px-2 py-1 rounded text-sm"
+                      className="p-1 rounded hover:bg-rose-100 text-rose-600"
                     >
-                      Quitar
+                      <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>
               ))}
               {ticket.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="p-2 text-center text-gray-500">
+                  <td colSpan="4" className="p-3 text-center text-slate-400">
                     No hay productos en el ticket.
                   </td>
                 </tr>
@@ -206,56 +202,43 @@ function NuevaVenta() {
           </table>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium">Forma de pago:</label>
-            <select
-              value={formaPago}
-              onChange={(e) => setFormaPago(e.target.value)}
-              className="border px-3 py-2 rounded"
-            >
-              <option value="Efectivo">Efectivo</option>
-              <option value="Crédito">Crédito</option>
-              <option value="Débito">Débito</option>
-              <option value="Transferencia">Transferencia</option>
-            </select>
+        {/* Forma de pago */}
+        <div className="mb-3">
+          <label className="block text-sm font-medium mb-1">Forma de pago:</label>
+          <div className="grid grid-cols-2 gap-2">
+            {['Efectivo','Crédito','Débito','Transferencia'].map(fp => (
+              <button
+                key={fp}
+                className={`px-3 py-2 rounded border text-sm font-medium transition
+                  ${formaPago===fp 
+                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'}
+                `}
+                onClick={()=>setFormaPago(fp)}
+              >
+                {fp}
+              </button>
+            ))}
           </div>
-          <div className="text-xl font-bold">Total: ${total.toFixed(2)}</div>
         </div>
-        <div className='mb-4'>
-          <button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-bold"
-            onClick={confirmarVenta}
-            disabled={ticket.length === 0}
-          >
-            Confirmar Venta
-          </button>
+
+        {/* Total */}
+        <div className="text-lg font-bold flex justify-between mb-3">
+          <span>Total:</span>
+          <span>${total.toFixed(2)}</span>
         </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {productosFiltrados.map((producto) => (
-          <div
-            key={producto.id}
-            className="border p-4 rounded shadow hover:bg-gray-100 cursor-pointer flex flex-col items-center text-center"
-            onClick={() => agregarAlTicket(producto)}
-          >
-            {/* Imagen del producto */}
-            {producto.imagen && (
-              <img
-                src={producto.imagen}
-                alt={producto.descripcion}
-                className="w-32 h-32 object-cover mb-2 rounded"
-              />
-            )}
 
-            <h3 className="font-bold">{producto.descripcion}</h3>
-            <p className="text-sm">Código: {producto.codigo}</p>
-            <p className="text-sm text-gray-600">${producto.precio_venta}</p>
-            <p className="text-sm text-gray-600">Stock: {producto.cantidad_stock}</p>
-          </div>
-        ))}
-      </div>
+        {/* Confirmar */}
+        <button
+          className="w-full px-4 py-2 rounded text-white font-semibold bg-green-600 hover:bg-green-700 disabled:opacity-50"
+          onClick={confirmarVenta}
+          disabled={ticket.length === 0}
+        >
+          Confirmar venta
+        </button>
+      </aside>
 
+      {/* Modal */}
       {mostrarTicket && ventaFinalizada && (
         <TicketModal
           venta={ventaFinalizada}
@@ -266,15 +249,12 @@ function NuevaVenta() {
             setProductosVendidos([]);
             setTicket([]);
             setBusqueda('');
-            // recargar productos disponibles
             API.get('/productos', {
               headers: { Authorization: `Bearer ${token}` }
             }).then(res => setProductos(res.data));
           }}
         />
       )}
-
-
     </div>
   );
 }

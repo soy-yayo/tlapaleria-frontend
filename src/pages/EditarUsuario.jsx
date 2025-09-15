@@ -55,34 +55,36 @@ function EditarUsuario() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white shadow-md mt-10 rounded">
-      <h2 className="text-xl font-bold mb-4 text-center">Editar usuario</h2>
-      <form onSubmit={handleSubmit} className="grid gap-4">
+    <div className="max-w-lg mx-auto mt-10 bg-white border rounded-xl shadow p-6">
+      <h2 className="text-2xl font-bold mb-6 text-center">👤 Editar usuario</h2>
 
+      <form onSubmit={handleSubmit} className="grid gap-5">
+        {/* Campos de texto */}
         {[
           ['nombre', 'Nombre completo'],
           ['usuario', 'Usuario'],
         ].map(([name, label]) => (
           <div key={name}>
-            <label className="block text-sm font-medium mb-1">{label}:</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
             <input
               type="text"
               name={name}
               value={form[name]}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         ))}
 
+        {/* Rol */}
         <div>
-          <label className="block text-sm font-medium mb-1">Rol:</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Rol</label>
           <select
             name="rol"
             value={form.rol}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           >
             <option value="admin">Administrador</option>
             <option value="ventas">Ventas</option>
@@ -90,9 +92,10 @@ function EditarUsuario() {
           </select>
         </div>
 
+        {/* Botón */}
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-xl transition"
         >
           Guardar cambios
         </button>

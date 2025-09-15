@@ -2,7 +2,7 @@ import LoginForm from '../components/LoginForm';
 
 function Login() {
   return (
-    <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>
+    <div className="flex items-center justify-center min-h-screen bg-slate-100 px-4">
       <LoginForm />
     </div>
   );

@@ -34,7 +34,7 @@ function CorteCaja() {
   const exportarPDF = () => {
     const doc = new jsPDF();
     doc.text('Corte de Caja', 14, 15);
-    autoTable(doc,{
+    autoTable(doc, {
       head: [['Fecha', 'Forma de Pago', 'Usuario', 'Cantidad Ventas', 'Total']],
       body: reporte.map(r => [
         r.fecha,
@@ -42,48 +42,86 @@ function CorteCaja() {
         r.usuario,
         r.cantidad_ventas,
         `$${r.total_ventas}`
-      ]), startY: 20,
-      styles: { fontSize: 8 }
+      ]),
+      startY: 20,
+      styles: { fontSize: 9 }
     });
     doc.save('corte_caja.pdf');
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Corte de Caja</h2>
+    <div className="page py-6">
+      <h2 className="text-2xl font-bold mb-6">💰 Corte de Caja</h2>
 
-      <div className="flex gap-2 mb-4">
-        <input type="date" value={filtros.desde} onChange={e => setFiltros({ ...filtros, desde: e.target.value })} />
-        <input type="date" value={filtros.hasta} onChange={e => setFiltros({ ...filtros, hasta: e.target.value })} />
-        <button onClick={cargar} className="px-3 py-1 bg-blue-500 text-white rounded">Filtrar</button>
+      {/* Filtros */}
+      <div className="bg-white border rounded-xl shadow-sm p-4 mb-6 flex flex-col md:flex-row gap-3 items-center">
+        <input
+          type="date"
+          value={filtros.desde}
+          onChange={e => setFiltros({ ...filtros, desde: e.target.value })}
+          className="rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+        <input
+          type="date"
+          value={filtros.hasta}
+          onChange={e => setFiltros({ ...filtros, hasta: e.target.value })}
+          className="rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+        <button
+          onClick={cargar}
+          className="px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+        >
+          Filtrar
+        </button>
       </div>
 
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="p-2 border">Fecha</th>
-            <th className="p-2 border">Forma de Pago</th>
-            <th className="p-2 border">Usuario</th>
-            <th className="p-2 border">Cantidad Ventas</th>
-            <th className="p-2 border">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reporte.map((r, idx) => (
-            <tr key={idx}>
-              <td className="border p-2">{r.fecha}</td>
-              <td className="border p-2">{r.forma_pago}</td>
-              <td className="border p-2">{r.usuario}</td>
-              <td className="border p-2">{r.cantidad_ventas}</td>
-              <td className="border p-2 font-bold">${r.total_ventas}</td>
+      {/* Tabla */}
+      <div className="overflow-x-auto bg-white border rounded-xl shadow">
+        <table className="w-full border-separate border-spacing-0">
+          <thead className="sticky top-0 bg-slate-100 text-slate-600 text-sm">
+            <tr>
+              <th className="p-3 text-left">Fecha</th>
+              <th className="p-3">Forma de Pago</th>
+              <th className="p-3">Usuario</th>
+              <th className="p-3 text-center">Cantidad Ventas</th>
+              <th className="p-3 text-right">Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="text-sm">
+            {reporte.map((r, idx) => (
+              <tr key={idx} className="odd:bg-slate-50 hover:bg-slate-100">
+                <td className="p-3">{r.fecha}</td>
+                <td className="p-3">{r.forma_pago}</td>
+                <td className="p-3">{r.usuario}</td>
+                <td className="p-3 text-center">{r.cantidad_ventas}</td>
+                <td className="p-3 text-right font-semibold">${r.total_ventas}</td>
+              </tr>
+            ))}
+            {reporte.length === 0 && (
+              <tr>
+                <td colSpan="5" className="p-4 text-center text-slate-400">
+                  No hay datos para este rango de fechas.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      <div className="flex gap-2 mt-4">
-        <button onClick={exportarExcel} className="px-3 py-1 bg-green-500 text-white rounded">Exportar Excel</button>
-        <button onClick={exportarPDF} className="px-3 py-1 bg-red-500 text-white rounded">Exportar PDF</button>
+      {/* Botones exportar */}
+      <div className="flex gap-3 mt-6">
+        <button
+          onClick={exportarExcel}
+          className="px-4 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition"
+        >
+          Exportar Excel
+        </button>
+        <button
+          onClick={exportarPDF}
+          className="px-4 py-2 rounded-xl bg-rose-600 text-white font-medium hover:bg-rose-700 transition"
+        >
+          Exportar PDF
+        </button>
       </div>
     </div>
   );

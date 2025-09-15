@@ -15,6 +15,7 @@ function Productos() {
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
 
   const usuario = JSON.parse(localStorage.getItem('usuario'));
+
   useEffect(() => {
     const fetchProductos = async () => {
       try {
@@ -32,7 +33,6 @@ function Productos() {
     fetchProductos();
   }, []);
 
-  // === Normalización igual que en NuevaVenta.jsx ===
   function normalizarTexto(texto = '') {
     return String(texto)
       .normalize('NFD')
@@ -40,41 +40,25 @@ function Productos() {
       .toLowerCase();
   }
 
-  // === Filtros + búsqueda flexible ===
   const productosFiltrados = productos.filter((p) => {
-    const coincideProveedor =
-      proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
-    const coincideUbicacion =
-      ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
-
-    // Normalizamos descripción y código juntos para buscar en ambos
+    const coincideProveedor = proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
+    const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
     const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
-
-    // Separamos la búsqueda en palabras
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
-
-    // Basta con que al menos una palabra aparezca
-    const coincideBusqueda =
-      palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
-
+    const coincideBusqueda = palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
     return coincideProveedor && coincideUbicacion && coincideBusqueda;
   });
 
+  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort();
+  const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort();
 
-  // Valores únicos para selects
-  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-
-  // === Exportar PDF (usa lista filtrada) ===
   const exportarPDF = () => {
     if (productosFiltrados.length === 0) {
       toast.info('No hay datos para exportar');
       return;
     }
-
     const doc = new jsPDF();
     doc.text('Inventario de productos', 14, 10);
-
     const tabla = productosFiltrados.map(p => [
       p.codigo,
       p.descripcion,
@@ -84,24 +68,20 @@ function Productos() {
       p.nombre_proveedor,
       p.clave_sat || ''
     ]);
-
     autoTable(doc, {
       head: [['Código', 'Descripción', 'Ubicación', 'Stock', 'Precio Venta', 'Proveedor', 'Clave SAT']],
       body: tabla,
       startY: 20,
       styles: { fontSize: 10 }
     });
-
     doc.save('inventario.pdf');
   };
 
-  // === Exportar Excel (usa lista filtrada) ===
   const exportarExcel = () => {
     if (productosFiltrados.length === 0) {
       toast.info('No hay datos para exportar');
       return;
     }
-
     const worksheetData = productosFiltrados.map(p => ({
       Código: p.codigo,
       Descripción: p.descripcion,
@@ -111,28 +91,22 @@ function Productos() {
       Proveedor: p.nombre_proveedor,
       'Clave SAT': p.clave_sat || ''
     }));
-
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventario');
-
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const file = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(file, 'inventario.xlsx');
   };
 
-  // === Eliminar producto ===
   const handleEliminar = async (id) => {
     const confirmar = window.confirm('¿Estás seguro de eliminar este producto?');
     if (!confirmar) return;
-
     const token = localStorage.getItem('token');
-
     try {
       await API.delete(`/productos/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setProductos((prev) => prev.filter((p) => p.id !== id));
       toast.success('Producto eliminado');
     } catch (err) {
@@ -142,100 +116,94 @@ function Productos() {
   };
 
   return (
-    <div className="container mx-auto p-4 bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl font-bold mb-4 text-center">Productos</h1>
+    <div className="max-w-7xl mx-auto mt-8 bg-white border rounded-xl shadow p-6">
+      <h1 className="text-2xl font-bold mb-6 text-center">📦 Productos</h1>
 
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+      {/* Barra de filtros */}
+      <div className="bg-slate-50 border rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3">
         <select
           value={proveedorFiltro}
           onChange={(e) => setProveedorFiltro(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/2"
+          className="flex-1 rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         >
           <option value="">Todos los proveedores</option>
           {proveedoresUnicos.map((prov) => (
             <option key={prov} value={prov}>{prov}</option>
           ))}
         </select>
-
         <select
           value={ubicacionFiltro}
           onChange={(e) => setUbicacionFiltro(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/2"
+          className="flex-1 rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         >
           <option value="">Todas las ubicaciones</option>
           {ubicacionesUnicas.map((ubi) => (
             <option key={ubi} value={ubi}>{ubi}</option>
           ))}
         </select>
-      </div>
-
-      {/* Buscador normalizado (igual a NuevaVenta) */}
-      <div className="mb-4">
         <input
           type="text"
-          placeholder="Buscar por código o descripción..."
+          placeholder="🔍 Buscar por código o descripción..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
+          className="flex-1 rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
         />
       </div>
 
-      {/* Acciones de exportación */}
-      <div className="mb-4 flex items-center gap-2">
+      {/* Acciones */}
+      <div className="mb-6 flex gap-3">
         <button
           onClick={exportarPDF}
           disabled={productosFiltrados.length === 0}
-          className={`px-4 py-2 rounded text-white ${productosFiltrados.length === 0 ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+          className={`px-4 py-2 rounded-xl text-white text-sm font-medium transition ${
+            productosFiltrados.length === 0
+              ? 'bg-slate-300 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
-          Exportar a PDF
+          Exportar PDF
         </button>
         <button
           onClick={exportarExcel}
           disabled={productosFiltrados.length === 0}
-          className={`px-4 py-2 rounded text-white ${productosFiltrados.length === 0 ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+          className={`px-4 py-2 rounded-xl text-white text-sm font-medium transition ${
+            productosFiltrados.length === 0
+              ? 'bg-slate-300 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700'
+          }`}
         >
-          Exportar a Excel
+          Exportar Excel
         </button>
       </div>
 
-      {/* Listado / vacío */}
+      {/* Grid de productos */}
       {productosFiltrados.length === 0 ? (
-        <p className="text-gray-600">No se encontraron productos.</p>
+        <p className="text-slate-500">No se encontraron productos.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {productosFiltrados.map(p => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          {productosFiltrados.map((p) => (
             <div
               key={p.id}
-              className="bg-white shadow rounded p-4 cursor-pointer hover:shadow-md transition"
+              className="bg-white border rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition"
               onClick={() => setProductoSeleccionado(p)}
             >
               <img
                 src={p.imagen}
                 alt={p.descripcion}
-                className="w-full h-40 object-cover mb-2 rounded"
+                className="w-full h-40 object-cover mb-3 rounded-lg"
               />
-              <h3 className="font-bold">{p.descripcion}</h3>
-              <p className="text-sm text-gray-600">Código: {p.codigo}</p>
-              <p className="text-sm text-gray-600">Stock: {p.cantidad_stock}</p>
-              <p className="text-sm text-gray-600">Ubicación: {p.ubicacion}</p>
-              <p className="text-sm text-gray-600 font-bold">Precio: ${Number(p.precio_venta ?? 0).toFixed(2)}</p>
-              <p className="text-sm text-gray-600">Clave SAT: {p.clave_sat || ''}</p>
-
-              {/* Info extra solo para admin */}
-              {usuario?.rol === 'admin' && (
-                <>
-                  <p className="text-sm text-gray-600 font-bold">Precio compra: {p.precio_compra}</p>
-                  <p className="text-sm text-gray-600">Proveedor: {p.nombre_proveedor}</p>
-                  <p className="text-sm text-gray-600">Stock máximo: {p.stock_maximo}</p>
-                </>
-              )}
+              <h3 className="font-semibold text-sm mb-1">{p.descripcion}</h3>
+              <p className="text-xs text-slate-500">Código: {p.codigo}</p>
+              <p className="text-xs text-slate-500">Stock: {p.cantidad_stock}</p>
+              <p className="text-xs text-slate-500">Ubicación: {p.ubicacion}</p>
+              <p className="text-sm font-bold text-blue-600">Precio: ${Number(p.precio_venta ?? 0).toFixed(2)}</p>
+              <p className="text-xs text-slate-500">Clave SAT: {p.clave_sat || '-'}</p>
 
               {usuario?.rol === 'admin' && (
-                <div className="flex mt-2 gap-2">
+                <div className="mt-3 flex gap-2">
                   <Link
                     to={`/productos/editar/${p.id}`}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                    className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 transition"
                     onClick={(e) => e.stopPropagation()}
                   >
                     Editar
@@ -245,7 +213,7 @@ function Productos() {
                       e.stopPropagation();
                       handleEliminar(p.id);
                     }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                    className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-xs font-medium hover:bg-rose-600 transition"
                   >
                     Eliminar
                   </button>
@@ -253,16 +221,15 @@ function Productos() {
               )}
             </div>
           ))}
-
         </div>
       )}
 
       {/* Modal detalle */}
       {productoSeleccionado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-full max-w-xl relative">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white border rounded-xl shadow-lg p-6 w-full max-w-2xl relative">
             <button
-              className="absolute top-2 right-3 text-xl"
+              className="absolute top-3 right-4 text-xl text-slate-500 hover:text-black"
               onClick={() => setProductoSeleccionado(null)}
             >
               &times;
@@ -271,49 +238,50 @@ function Productos() {
             <img
               src={productoSeleccionado.imagen}
               alt={productoSeleccionado.descripcion}
-              className="w-full h-66 object-cover rounded mb-4"
+              className="w-full h-64 object-cover rounded mb-4"
             />
 
             <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
 
-            {/* Campos visibles para todos */}
-            <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
-            <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
-            <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
-            <p><strong>Precio:</strong> ${Number(productoSeleccionado.precio_venta ?? 0).toFixed(2)}</p>
-            <p><strong>Clave SAT:</strong> {productoSeleccionado.clave_sat || ''}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
+              <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
+              <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
+              <p><strong>Precio venta:</strong> ${Number(productoSeleccionado.precio_venta ?? 0).toFixed(2)}</p>
+              <p><strong>Clave SAT:</strong> {productoSeleccionado.clave_sat || '-'}</p>
 
-            {/* Campos extras solo para admin */}
+              {usuario?.rol === 'admin' && (
+                <>
+                  <p><strong>Precio compra:</strong> ${Number(productoSeleccionado.precio_compra ?? 0).toFixed(2)}</p>
+                  <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
+                  <p><strong>Stock máximo:</strong> {productoSeleccionado.stock_maximo}</p>
+                </>
+              )}
+            </div>
+
             {usuario?.rol === 'admin' && (
-              <>
-                <p><strong>Precio compra: </strong>${Number(productoSeleccionado.precio_compra ?? 0).toFixed(2)}</p>
-                <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
-                <p><strong>Stock máximo:</strong> {productoSeleccionado.stock_maximo}</p>
-                <div className="flex mt-2 gap-2">
-                  <Link
-                    to={`/productos/editar/${productoSeleccionado.id}`}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Editar
-                  </Link>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEliminar(productoSeleccionado.id);
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </>
+              <div className="mt-4 flex gap-2">
+                <Link
+                  to={`/productos/editar/${productoSeleccionado.id}`}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Editar
+                </Link>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEliminar(productoSeleccionado.id);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition"
+                >
+                  Eliminar
+                </button>
+              </div>
             )}
-
           </div>
         </div>
       )}
-
     </div>
   );
 }
