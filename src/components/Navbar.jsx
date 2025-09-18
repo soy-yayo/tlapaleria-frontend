@@ -26,6 +26,7 @@ function Navbar() {
     { to: '/proveedores', label: 'Proveedores', admin: true },
     { to: '/corte-caja', label: 'Corte de Caja', admin: true },
     { to: '/porcentajes-de-utilidad', label: 'Calculadora de Utilidad', admin: true },
+    { to: '/cotizaciones', label: 'Cotizaciones', admin: false },
   ];
 
   return (

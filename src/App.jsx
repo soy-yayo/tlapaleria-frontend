@@ -16,6 +16,8 @@ import PorcentajesDeUtilidad from './pages/PorcentajesDeUtilidad';
 import Usuarios from './pages/Usuarios';
 import EditarUsuario from './pages/EditarUsuario';
 import RegistrarUsuario from './pages/RegistrarUsuario';
+import Cotizaciones from './pages/Cotizaciones';
+import NuevaCotizacion from './pages/NuevaCotizacion';
 
 // Components
 import NavBar from './components/Navbar';
@@ -50,6 +52,11 @@ function LayoutPrivado() {
           <Route path="proveedores" element={<Proveedores />} />
           <Route path="corte-caja" element={<CorteCaja />} />
           <Route path="porcentajes-de-utilidad" element={<PorcentajesDeUtilidad />} />
+
+          {/* Cotizaciones */}
+          <Route path="cotizaciones" element={<Cotizaciones />} />
+          <Route path="cotizaciones/nueva" element={<NuevaCotizacion />} />
+          <Route path="cotizaciones/editar/:id" element={<NuevaCotizacion />} />
 
           {/* Fallback privado */}
           <Route path="*" element={<AccesoDenegado />} />
