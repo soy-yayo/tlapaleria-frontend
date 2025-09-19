@@ -146,6 +146,7 @@ function NuevaVenta() {
               <p className="text-xs text-slate-500">Código: {producto.codigo}</p>
               <p className="text-sm font-bold text-blue-600">${producto.precio_venta}</p>
               <p className="text-xs text-slate-500">Stock: {producto.cantidad_stock}</p>
+              <p className="text-xs text-slate-500">Ubicación: {producto.ubicacion}</p>
             </div>
           ))}
         </div>
