@@ -238,7 +238,7 @@ function Productos() {
             <img
               src={productoSeleccionado.imagen}
               alt={productoSeleccionado.descripcion}
-              className="w-full h-80 object-cover rounded mb-4"
+              className="w-full h-80 object-fit rounded mb-4"
             />
 
             <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
