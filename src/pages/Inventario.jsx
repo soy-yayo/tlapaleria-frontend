@@ -44,7 +44,7 @@ function Inventario() {
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
     const coincideStock =
       stockFiltro === '' ||
-      (stockFiltro === 'BAJO' && Number(p.cantidad_stock) > 0 && Number(p.cantidad_stock) < Number(p.stock_minimo)) ||
+      (stockFiltro === 'BAJO' && Number(p.cantidad_stock) < Number(p.stock_minimo)) ||
       (stockFiltro === 'CERO' && Number(p.cantidad_stock) === 0);
 
     const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
@@ -157,13 +157,13 @@ function Inventario() {
             onClick={exportarPDF}
             className="flex items-center gap-1 px-3 py-2 rounded border text-sm bg-white text-slate-700 hover:bg-slate-100"
           >
-            <FileText size={16}/> PDF
+            <FileText size={16} /> PDF
           </button>
           <button
             onClick={exportarExcel}
             className="flex items-center gap-1 px-3 py-2 rounded border text-sm bg-white text-slate-700 hover:bg-slate-100"
           >
-            <Download size={16}/> Excel
+            <Download size={16} /> Excel
           </button>
         </div>
       </div>
@@ -194,9 +194,9 @@ function Inventario() {
                 <td className="text-center">
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium
-                      ${p.cantidad_stock === 0
+    ${Number(p.cantidad_stock) === 0
                         ? 'bg-rose-100 text-rose-700'
-                        : p.cantidad_stock < p.stock_faltante
+                        : Number(p.cantidad_stock) < Number(p.stock_minimo)
                           ? 'bg-amber-100 text-amber-700'
                           : 'bg-emerald-100 text-emerald-700'}`}
                   >
@@ -211,14 +211,14 @@ function Inventario() {
                     to={`/productos/editar/${p.id}`}
                     className="p-1 rounded hover:bg-amber-100 text-amber-600"
                   >
-                    <Edit size={16}/>
+                    <Edit size={16} />
                   </Link>
                   {usuario?.rol === 'admin' && (
                     <button
                       onClick={() => handleEliminar(p.id)}
                       className="p-1 rounded hover:bg-rose-100 text-rose-600"
                     >
-                      <Trash2 size={16}/>
+                      <Trash2 size={16} />
                     </button>
                   )}
                 </td>
