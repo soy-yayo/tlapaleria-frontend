@@ -44,7 +44,7 @@ function Inventario() {
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
     const coincideStock =
       stockFiltro === '' ||
-      (stockFiltro === 'BAJO' && Number(p.cantidad_stock) > 0 && Number(p.stock_faltante) > 0) ||
+      (stockFiltro === 'BAJO' && Number(p.cantidad_stock) > 0 && Number(p.cantidad_stock) < Number(p.stock_minimo)) ||
       (stockFiltro === 'CERO' && Number(p.cantidad_stock) === 0);
 
     const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);

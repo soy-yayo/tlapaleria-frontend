@@ -14,7 +14,8 @@ function AgregarProducto() {
     proveedor_id: '',
     precio_compra: '',
     precio_venta: '',
-    clave_sat: ''
+    clave_sat: '',
+    stock_minimo: ''
   });
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
@@ -100,6 +101,7 @@ function AgregarProducto() {
           ['ubicacion', 'Ubicación'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
+          ['stock_minimo', 'Stock mínimo'],
           ['precio_compra', 'Precio de compra'],
           ['precio_venta', 'Precio de venta'],
           ['clave_sat', 'Clave SAT']

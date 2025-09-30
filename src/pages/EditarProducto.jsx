@@ -19,7 +19,8 @@ function EditarProducto() {
     precio_compra: '',
     precio_venta: '',
     imagen: '',
-    clave_sat: ''
+    clave_sat: '',
+    stock_minimo: ''
   });
 
   const [imagen, setImagen] = useState(null);
@@ -110,6 +111,7 @@ function EditarProducto() {
           ['ubicacion', 'Ubicación'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
+          ['stock_minimo', 'Stock mínimo'],
           ['precio_compra', 'Precio de compra'],
           ['precio_venta', 'Precio de venta'],
           ['clave_sat', 'Clave SAT']
