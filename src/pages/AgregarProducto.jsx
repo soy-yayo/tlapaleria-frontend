@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API from '../services/api';
 
 function AgregarProducto() {
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
     codigo: '',
     descripcion: '',
@@ -13,6 +14,7 @@ function AgregarProducto() {
     cantidad_stock: '',
     proveedor_id: '',
     precio_compra: '',
+    // precio_venta no se usa en el POST del backend; puedes quitarlo si no lo ocupas
     precio_venta: '',
     clave_sat: '',
     stock_minimo: ''
@@ -20,60 +22,91 @@ function AgregarProducto() {
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const usuario = JSON.parse(localStorage.getItem('usuario'));
+  const loadedRef = useRef(false);
 
   useEffect(() => {
-    if (!usuario) {
-      navigate('/login');
-      return;
-    }
-    if (usuario.rol !== 'admin') {
-      navigate('/denegado');
-      return;
-    }
+    // Redirecciones por rol
+    if (!usuario) { navigate('/login'); return; }
+    if (usuario.rol !== 'admin') { navigate('/denegado'); return; }
 
-    const fetchData = async () => {
+    // Evita múltiples cargas (StrictMode)
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
+    const ctrl = new AbortController();
+    (async () => {
       try {
         const token = localStorage.getItem('token');
         const [resProv, resProd] = await Promise.all([
-          API.get('/proveedores', { headers: { Authorization: `Bearer ${token}` } }),
-          API.get('/productos', { headers: { Authorization: `Bearer ${token}` } })
+          API.get('/proveedores', { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal }),
+          API.get('/productos',   { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal })
         ]);
-        setProveedores(resProv.data);
-        setProductos(resProd.data);
+        setProveedores(resProv.data || []);
+        setProductos(resProd.data || []);
       } catch (err) {
-        toast.error('Error al cargar datos iniciales');
+        if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
+          toast.error('Error al cargar datos iniciales');
+        }
       }
-    };
-    fetchData();
-  }, [usuario, navigate]);
+    })();
+
+    return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleFileChange = (e) => {
-    setImagen(e.target.files[0]);
+    setImagen(e.target.files?.[0] || null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+
     const token = localStorage.getItem('token');
 
-    const codigoExistente = productos.find(p => p.codigo === form.codigo);
-    if (codigoExistente) {
-      toast.error(`El código "${form.codigo}" ya está registrado en otro producto`);
-      return;
-    }
+    // Normalizadores
+    const toInt = (v, d = 0) => {
+      const n = Number(v); return Number.isFinite(n) ? Math.trunc(n) : d;
+    };
+    const toNum = (v, d = 0) => {
+      const n = Number(v); return Number.isFinite(n) ? n : d;
+    };
 
+    const payload = {
+      codigo: String(form.codigo || '').trim(),
+      descripcion: String(form.descripcion || '').trim(),
+      ubicacion: String(form.ubicacion || '').trim(),
+      stock_maximo: toInt(form.stock_maximo, 0),
+      cantidad_stock: toInt(form.cantidad_stock, 0),
+      proveedor_id: toInt(form.proveedor_id, 0),
+      precio_compra: toNum(form.precio_compra, 0),
+      clave_sat: String(form.clave_sat || '').trim(),
+      stock_minimo: toInt(form.stock_minimo, 0),
+    };
+
+    // Validaciones mínimas
+    if (!payload.codigo) { toast.error('El código es obligatorio'); setSubmitting(false); return; }
+    if (!payload.descripcion) { toast.error('La descripción es obligatoria'); setSubmitting(false); return; }
+    if (!payload.proveedor_id) { toast.error('Selecciona proveedor'); setSubmitting(false); return; }
+    if (payload.stock_minimo < 0) { toast.error('El stock mínimo no puede ser negativo'); setSubmitting(false); return; }
+    if (payload.cantidad_stock < 0) { toast.error('La cantidad en stock no puede ser negativa'); setSubmitting(false); return; }
+
+    // Duplicado local (el backend también valida)
+    const existe = productos.some(p => String(p.codigo).trim() === payload.codigo);
+    if (existe) { toast.error(`El código "${payload.codigo}" ya está registrado`); setSubmitting(false); return; }
+
+    // FormData para multipart (imagen opcional)
     const formData = new FormData();
-    Object.entries(form).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-    if (imagen) {
-      formData.append('imagen', imagen);
-    }
+    Object.entries(payload).forEach(([k, v]) => formData.append(k, String(v)));
+    if (imagen) formData.append('imagen', imagen);
 
     try {
       await API.post('/productos', formData, {
@@ -85,7 +118,10 @@ function AgregarProducto() {
       toast.success('Producto agregado correctamente');
       navigate('/productos');
     } catch (err) {
-      toast.error('Error al agregar producto');
+      const msg = err?.response?.data?.error || err.message || 'Error al agregar producto';
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -94,30 +130,86 @@ function AgregarProducto() {
       <h2 className="text-2xl font-bold mb-6 text-center">➕ Agregar producto</h2>
 
       <form onSubmit={handleSubmit} className="grid gap-5">
-        {/* Campos de texto */}
-        {[
-          ['codigo', 'Código'],
-          ['descripcion', 'Descripción'],
-          ['ubicacion', 'Ubicación'],
-          ['stock_maximo', 'Stock máximo'],
-          ['cantidad_stock', 'Cantidad en stock'],
-          ['stock_minimo', 'Stock mínimo'],
-          ['precio_compra', 'Precio de compra'],
-          ['precio_venta', 'Precio de venta'],
-          ['clave_sat', 'Clave SAT']
-        ].map(([name, label]) => (
-          <div key={name}>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
-            <input
-              type="text"
-              name={name}
-              value={form[name]}
-              onChange={handleChange}
-              required
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-        ))}
+        {/* Texto */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Código</label>
+          <input
+            type="text"
+            name="codigo"
+            value={form.codigo}
+            onChange={handleChange}
+            required
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+          <input
+            type="text"
+            name="descripcion"
+            value={form.descripcion}
+            onChange={handleChange}
+            required
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Ubicación</label>
+          <input
+            type="text"
+            name="ubicacion"
+            value={form.ubicacion}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        {/* Números */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Stock máximo</label>
+          <input
+            type="number" min="0" step="1"
+            name="stock_maximo"
+            value={form.stock_maximo}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Cantidad en stock</label>
+          <input
+            type="number" min="0" step="1"
+            name="cantidad_stock"
+            value={form.cantidad_stock}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Stock mínimo</label>
+          <input
+            type="number" min="0" step="1"
+            name="stock_minimo"
+            value={form.stock_minimo}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Precio de compra</label>
+          <input
+            type="number" min="0" step="0.01"
+            name="precio_compra"
+            value={form.precio_compra}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
 
         {/* Proveedor */}
         <div>
@@ -151,9 +243,10 @@ function AgregarProducto() {
         {/* Botón */}
         <button
           type="submit"
+          disabled={submitting}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-xl transition disabled:opacity-50"
         >
-          Guardar producto
+          {submitting ? 'Guardando…' : 'Guardar producto'}
         </button>
       </form>
     </div>
