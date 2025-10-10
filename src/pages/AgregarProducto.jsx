@@ -14,7 +14,6 @@ function AgregarProducto() {
     cantidad_stock: '',
     proveedor_id: '',
     precio_compra: '',
-    // precio_venta no se usa en el POST del backend; puedes quitarlo si no lo ocupas
     precio_venta: '',
     clave_sat: '',
     stock_minimo: ''
@@ -206,6 +205,17 @@ function AgregarProducto() {
             type="number" min="0" step="0.01"
             name="precio_compra"
             value={form.precio_compra}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+        {/* Clave SAT */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Clave SAT</label>
+          <input
+            type="text"
+            name="clave_sat"
+            value={form.clave_sat}
             onChange={handleChange}
             className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
