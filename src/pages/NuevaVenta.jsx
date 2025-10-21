@@ -15,6 +15,9 @@ function NuevaVenta() {
   const [ventaFinalizada, setVentaFinalizada] = useState(null);
   const [productosVendidos, setProductosVendidos] = useState([]);
 
+  // efectivo
+  const [efectivoRecibido, setEfectivoRecibido] = useState('');
+
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -24,13 +27,16 @@ function NuevaVenta() {
         const res = await API.get('/productos', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setProductos(res.data);
+        setProductos(res.data || []);
       } catch (error) {
         toast.error('Error al cargar productos');
       }
     };
     cargarProductos();
   }, []);
+
+  const fmt = (n) =>
+    Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   function normalizarTexto(texto = '') {
     return String(texto)
@@ -46,7 +52,7 @@ function NuevaVenta() {
   });
 
   const agregarAlTicket = (producto) => {
-    const existe = ticket.find(p => p.id === producto.id);
+    const existe = ticket.find((p) => p.id === producto.id);
     if (existe) {
       const nuevaCantidad = existe.cantidad + 1;
       actualizarCantidad(producto.id, nuevaCantidad);
@@ -57,44 +63,71 @@ function NuevaVenta() {
   };
 
   const actualizarCantidad = (id, nuevaCantidad) => {
-    setTicket(ticket.map(p =>
-      p.id === id ? { ...p, cantidad: parseInt(nuevaCantidad) || 1 } : p
-    ));
+    setTicket((t) =>
+      t.map((p) => (p.id === id ? { ...p, cantidad: parseInt(nuevaCantidad) || 1 } : p))
+    );
   };
 
   const eliminarDelTicket = (id) => {
-    setTicket(ticket.filter(p => p.id !== id));
+    setTicket(ticket.filter((p) => p.id !== id));
   };
 
-  const total = ticket.reduce((acc, item) => acc + item.cantidad * item.precio_venta, 0);
+  const total = ticket.reduce(
+    (acc, item) => acc + Number(item.cantidad) * Number(item.precio_venta),
+    0
+  );
+
+  // Cálculo de cambio/faltante cuando es efectivo
+  const recibidoNum = parseFloat(efectivoRecibido) || 0;
+  const cambio = Math.max(recibidoNum - total, 0);
+  const faltante = Math.max(total - recibidoNum, 0);
+  const efectivoInsuficiente = formaPago === 'Efectivo' && recibidoNum < total;
 
   const confirmarVenta = async () => {
     if (ticket.length === 0) return;
-    const sinStock = ticket.find(p => p.cantidad > p.cantidad_stock);
+
+    const sinStock = ticket.find((p) => p.cantidad > p.cantidad_stock);
     if (sinStock) return toast.error(`No hay suficiente stock de "${sinStock.descripcion}"`);
+
+    if (formaPago === 'Efectivo' && recibidoNum < total) {
+      return toast.error('El efectivo recibido es menor que el total');
+    }
 
     const usuario = JSON.parse(localStorage.getItem('usuario'));
     try {
-      const res = await API.post('/ventas', {
-        forma_pago: formaPago,
-        productos: ticket.map(p => ({ id: p.id, cantidad: p.cantidad }))
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await API.post(
+        '/ventas',
+        {
+          forma_pago: formaPago,
+          productos: ticket.map((p) => ({ id: p.id, cantidad: p.cantidad }))
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       const ventaId = res.data.venta_id;
-      const detalles = await API.get(`/ventas/${ventaId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const detalles = await API.get(`/ventas/${ventaId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       setVentaFinalizada({
         id: ventaId,
         fecha: new Date(),
         forma_pago: formaPago,
         total: total.toFixed(2),
-        nombre_vendedor: usuario.nombre,
+        cambio: cambio.toFixed(2),
+        monto_recibido: recibidoNum.toFixed(2),
+        nombre_vendedor: usuario.nombre
       });
       setProductosVendidos(detalles.data);
       setMostrarTicket(true);
-      toast.success(`Venta registrada con ID ${ventaId}`);
+      toast.success(
+        formaPago === 'Efectivo'
+          ? `Venta registrada (ID ${ventaId}). Cambio: $${fmt(cambio)}`
+          : `Venta registrada (ID ${ventaId}).`
+      );
       setTicket([]);
       setBusqueda('');
+      setEfectivoRecibido('');
     } catch (error) {
       toast.error('Error al registrar la venta');
     }
@@ -144,7 +177,7 @@ function NuevaVenta() {
               )}
               <h3 className="font-semibold text-sm">{producto.descripcion}</h3>
               <p className="text-xs text-slate-500">Código: {producto.codigo}</p>
-              <p className="text-sm font-bold text-blue-600">${producto.precio_venta}</p>
+              <p className="text-sm font-bold text-blue-600">${fmt(producto.precio_venta)}</p>
               <p className="text-xs text-slate-500">Stock: {producto.cantidad_stock}</p>
               <p className="text-xs text-slate-500">Ubicación: {producto.ubicacion}</p>
             </div>
@@ -163,6 +196,7 @@ function NuevaVenta() {
                 <th className="p-2 text-left">Producto</th>
                 <th className="p-2 text-center">Cant.</th>
                 <th className="p-2 text-right">Subtotal</th>
+                <th className="p-2 text-right">Ubicación</th>
                 <th></th>
               </tr>
             </thead>
@@ -180,7 +214,10 @@ function NuevaVenta() {
                     />
                   </td>
                   <td className="p-2 text-right">
-                    ${(item.precio_venta * item.cantidad).toFixed(2)}
+                    ${fmt(Number(item.precio_venta) * Number(item.cantidad))}
+                  </td>
+                  <td className="p-2 text-right">
+                    {item.ubicacion}
                   </td>
                   <td className="p-2 text-right">
                     <button
@@ -207,15 +244,18 @@ function NuevaVenta() {
         <div className="mb-3">
           <label className="block text-sm font-medium mb-1">Forma de pago:</label>
           <div className="grid grid-cols-2 gap-2">
-            {['Efectivo','Crédito','Débito','Transferencia'].map(fp => (
+            {['Efectivo', 'Crédito', 'Débito', 'Transferencia'].map((fp) => (
               <button
                 key={fp}
+                type="button"
                 className={`px-3 py-2 rounded border text-sm font-medium transition
-                  ${formaPago===fp 
-                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'}
+                  ${
+                    formaPago === fp
+                      ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                  }
                 `}
-                onClick={()=>setFormaPago(fp)}
+                onClick={() => setFormaPago(fp)}
               >
                 {fp}
               </button>
@@ -223,19 +263,55 @@ function NuevaVenta() {
           </div>
         </div>
 
+        {formaPago === 'Efectivo' && (
+          <div className="mb-3">
+            <label className="block text-sm font-medium mb-1">Monto recibido</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={efectivoRecibido}
+              onChange={(e) => setEfectivoRecibido(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !efectivoInsuficiente && ticket.length > 0) {
+                  confirmarVenta();
+                }
+              }}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="0.00"
+            />
+            <div className="mt-2 text-sm">
+              {efectivoInsuficiente ? (
+                <span className="text-rose-700">
+                  Faltan: <b>${fmt(faltante)}</b>
+                </span>
+              ) : (
+                <span className="text-emerald-700">
+                  Cambio: <b>${fmt(cambio)}</b>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Total */}
         <div className="text-lg font-bold flex justify-between mb-3">
           <span>Total:</span>
-          <span>${total.toFixed(2)}</span>
+          <span>${fmt(total)}</span>
         </div>
 
         {/* Confirmar */}
         <button
           className="w-full px-4 py-2 rounded text-white font-semibold bg-green-600 hover:bg-green-700 disabled:opacity-50"
           onClick={confirmarVenta}
-          disabled={ticket.length === 0}
+          disabled={ticket.length === 0 || efectivoInsuficiente}
         >
-          Confirmar venta
+          {formaPago === 'Efectivo'
+            ? efectivoInsuficiente
+              ? 'Monto insuficiente'
+              : 'Confirmar venta (Efectivo)'
+            : 'Confirmar venta'}
         </button>
       </aside>
 
@@ -250,9 +326,10 @@ function NuevaVenta() {
             setProductosVendidos([]);
             setTicket([]);
             setBusqueda('');
+            setEfectivoRecibido('');
             API.get('/productos', {
               headers: { Authorization: `Bearer ${token}` }
-            }).then(res => setProductos(res.data));
+            }).then((res) => setProductos(res.data || []));
           }}
         />
       )}
