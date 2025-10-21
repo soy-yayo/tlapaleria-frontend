@@ -7,13 +7,13 @@ export function getRangos() {
 }
 
 function calcularPrecioVenta(precioCompra, rangos) {
-  const rango = rangos.find(
-    (r) =>
-      precioCompra >= r.min &&
-      precioCompra <= (r.max === Infinity ? Number.MAX_SAFE_INTEGER : r.max)
-  );
+  const rango = rangos.find((r) => {
+     const max = (r.max === Infinity ? Infinity : Number(r.max));
+     return precioCompra >= Number(r.min) && precioCompra <= (Number.isFinite(max) ? max : Infinity);
+   });
   if (!rango) return null;
-  return +Math.floor((precioCompra * (1 + rango.porcentaje / 100))).toFixed(2);
+  const pv = precioCompra * (1 + Number(rango.porcentaje) / 100);
+  return Math.round(pv * 100) / 100;
 }
 
 export default function PorcentajesDeUtilidad() {
@@ -30,7 +30,13 @@ export default function PorcentajesDeUtilidad() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     API.get("/rangos", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setRangos(res.data))
+      .then((res) => {
+        const normalized = (res.data || []).map(r => ({
+          ...r,
+          max: (r.max === null || typeof r.max === 'undefined') ? Infinity : r.max
+        }));
+        setRangos(normalized);
+      })
       .catch(() => setRangos([]));
   }, []);
 
@@ -56,9 +62,9 @@ export default function PorcentajesDeUtilidad() {
 
   const handleGuardarRango = async (e) => {
     e.preventDefault();
-    const min = parseFloat(nuevoRango.min);
-    const max =
-      nuevoRango.max === "Infinity" ? Infinity : parseFloat(nuevoRango.max);
+     const min = parseFloat(nuevoRango.min);
+   const maxStr = String(nuevoRango.max).trim();
+   const max = (maxStr === "Infinity" || maxStr === "∞" || maxStr === "") ? null : parseFloat(maxStr);
     const porcentaje = parseFloat(nuevoRango.porcentaje);
     const token = localStorage.getItem("token");
 
@@ -71,7 +77,7 @@ export default function PorcentajesDeUtilidad() {
           { min, max, porcentaje },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setRangos(rangos.map((r) => (r.id === editando ? res.data : r)));
+        setRangos(rangos.map((r) => (r.id === editando ? { ...res.data, max: res.data.max ?? Infinity } : r)));
         setEditando(null);
       } else {
         const res = await API.post(
@@ -79,7 +85,7 @@ export default function PorcentajesDeUtilidad() {
           { min, max, porcentaje },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setRangos([...rangos, res.data]);
+        setRangos([...rangos, { ...res.data, max: res.data.max ?? Infinity }]);
       }
       setNuevoRango({ min: "", max: "", porcentaje: "" });
     } catch (err) {
