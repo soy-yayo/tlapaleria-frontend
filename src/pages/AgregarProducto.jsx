@@ -87,6 +87,7 @@ function AgregarProducto() {
       cantidad_stock: toInt(form.cantidad_stock, 0),
       proveedor_id: toInt(form.proveedor_id, 0),
       precio_compra: toNum(form.precio_compra, 0),
+      precio_venta: toNum(form.precio_venta, 0),
       clave_sat: String(form.clave_sat || '').trim(),
       stock_minimo: toInt(form.stock_minimo, 0),
     };
@@ -205,6 +206,17 @@ function AgregarProducto() {
             type="number" min="0" step="0.01"
             name="precio_compra"
             value={form.precio_compra}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Precio de venta</label>
+          <input
+            type="number" min="0" step="0.01"
+            name="precio_venta"
+            value={form.precio_venta}
             onChange={handleChange}
             className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
