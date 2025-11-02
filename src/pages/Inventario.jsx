@@ -39,7 +39,12 @@ function Inventario() {
       .toLowerCase();
   }
 
+  const esProveedorOculto = (nombre = '') =>
+  normalizarTexto(nombre).trim() === 'a granel';
+
   const productosFiltrados = productos.filter((p) => {
+    if(esProveedorOculto(p?.nombre_proveedor)) return false;
+
     const coincideProveedor = proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
     const coincideStock =
@@ -54,7 +59,7 @@ function Inventario() {
     return coincideProveedor && coincideUbicacion && coincideStock && coincideBusqueda;
   });
 
-  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean).filter(n => !esProveedorOculto(n)))].sort((a, b) => a.localeCompare(b));
   const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   const totalCompra = productosFiltrados.reduce((acc, p) => acc + (Number(p.precio_compra ?? 0) * Number(p.stock_faltante ?? 0)), 0);
