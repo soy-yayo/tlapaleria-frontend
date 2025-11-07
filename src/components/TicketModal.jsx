@@ -180,54 +180,52 @@ const generarPDF = () => {
 
 
 
-   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-      <div className="bg-white border rounded-xl shadow-lg p-6 w-full max-w-md relative">
-        {/* Botón cerrar */}
-        <button
-          className="absolute top-3 right-4 text-slate-500 hover:text-black text-lg"
-          onClick={onClose}
-        >
-          ✖
-        </button>
-
-        {/* Encabezado */}
-        <h2 className="text-xl font-bold mb-4 text-center">
-          🧾 Ticket de Venta #{venta.id}
-        </h2>
-
-        {/* Info básica */}
-        <div className="text-sm space-y-1 mb-4">
-          <p><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</p>
-          <p><strong>Forma de pago:</strong> {venta.forma_pago}</p>
-          <p><strong>Vendedor:</strong> {venta.nombre_vendedor}</p>
+    return (
+    // Backdrop con scroll si el contenido crece
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto">
+      {/* Contenedor del modal: columna, con header y footer 'sticky' */}
+      <div className="relative w-full max-w-md my-6 bg-white border rounded-xl shadow-lg flex flex-col max-h-[90vh]">
+        {/* Header fijo */}
+        <div className="sticky top-0 z-10 bg-white border-b px-6 pt-5 pb-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">🧾 Ticket de Venta #{venta.id}</h2>
+            <button
+              onClick={onClose}
+              className="rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-100"
+              aria-label="Cerrar"
+            >
+              ✖
+            </button>
+          </div>
+          <div className="mt-2 grid grid-cols-1 gap-1 text-sm text-slate-700">
+            <span><strong>Fecha:</strong> {new Date(venta.fecha).toLocaleDateString()}</span>
+            <span><strong>Forma de pago:</strong> {venta.forma_pago}</span>
+            <span><strong>Vendedor:</strong> {venta.nombre_vendedor}</span>
+          </div>
         </div>
 
-        <hr className="my-3" />
+        {/* Cuerpo scrollable */}
+        <div className="px-6 py-3 overflow-y-auto">
+          <ul className="text-sm divide-y">
+            {productos.map((p, i) => (
+              <li key={i} className="py-2">
+                <div className="font-medium">{p.descripcion}</div>
+                <div className="flex justify-between text-xs text-slate-600">
+                  <span>Cant: {p.cantidad}</span>
+                  <span>P.Unit: ${p.precio_unitario}</span>
+                  <span>Subt: ${(p.cantidad * p.precio_unitario).toFixed(2)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
 
-        {/* Lista productos */}
-        <ul className="text-sm divide-y">
-          {productos.map((p, i) => (
-            <li key={i} className="py-2">
-              <div className="font-medium">{p.descripcion}</div>
-              <div className="flex justify-between text-xs text-slate-600">
-                <span>Cant: {p.cantidad}</span>
-                <span>P.Unit: ${p.precio_unitario}</span>
-                <span>Subt: ${(p.cantidad * p.precio_unitario).toFixed(2)}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+          <div className="border-t mt-3 pt-3 text-right">
+            <p className="font-bold text-lg text-blue-700">Total: ${venta.total}</p>
+          </div>
+        </div>
 
-        <hr className="my-3" />
-
-        {/* Total */}
-        <p className="font-bold text-right text-lg text-blue-700">
-          Total: ${venta.total}
-        </p>
-
-        {/* Acciones */}
-        <div className="mt-5 flex justify-between">
+        {/* Footer fijo con botones */}
+        <div className="sticky bottom-0 z-10 bg-white border-t px-6 py-3 flex items-center justify-between">
           <button
             onClick={generarPDF}
             className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
