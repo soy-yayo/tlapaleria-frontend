@@ -27,41 +27,40 @@ function TicketModal({ venta, productos, onClose }) {
     return num.toString();
   };
 
-  const generarPDF = () => {
-  // Tamaño típico para impresora térmica 58mm
-  const WIDTH = 58;         // mm
-  const HEIGHT = 200;       // mm (alto fijo por página)
-  const ML = 2;             // margen izq/der
-  const MT = 2;             // margen superior
-  const W = WIDTH - ML * 2; // ancho imprimible
+const generarPDF = () => {
+  // Tamaño típico para 58 mm
+  const WIDTH = 58;   // mm
+  const HEIGHT = 200; // mm por página
+  const ML = 2;       // margen izq/der
+  const MT = 2;       // margen superior
+  const W = WIDTH - ML * 2;
+  const RIGHT = ML + W;
 
   const doc = new jsPDF({ unit: 'mm', format: [WIDTH, HEIGHT] });
-  const pageH = doc.internal.pageSize.getHeight();
-  const Xc = ML + W / 2;
   let y = MT;
 
-  // Helpers
+  // Altura de línea consistente (apretadito sin cortar)
+  const LH = 3.4;
+
   const money = (n) =>
     new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 })
       .format(Number(n || 0));
 
-  const LH = 4; // line height (mm) consistente
-  const bottom = () => pageH - MT;
+  const bottom = HEIGHT - MT;
 
-  const newPage = () => {
+  const newPage = (cont = true) => {
     doc.addPage([WIDTH, HEIGHT]);
     y = MT;
+    // Si quieres encabezado en páginas siguientes, descomenta:
+    // textC(cont ? 'CLIMAS GAMA (cont.)' : 'CLIMAS GAMA', 10, 'bold');
+    // hr(2);
   };
 
-  // Si no cabe 'h' mm, abre nueva página
-  const need = (h = LH) => {
-    if (y + h > bottom()) newPage();
-  };
+  const needBlock = (h) => { if (y + h > bottom) newPage(true); };
 
   const hr = (gap = 2) => {
-    need(1);
     doc.setLineWidth(0.2);
-    doc.line(ML, y, ML + W, y);
+    doc.line(ML, y, RIGHT, y);
     y += gap;
   };
 
@@ -69,8 +68,8 @@ function TicketModal({ venta, productos, onClose }) {
     doc.setFont('helvetica', style);
     doc.setFontSize(size);
     const lines = Array.isArray(t) ? t : doc.splitTextToSize(String(t), W);
-    need(lines.length * LH);
-    doc.text(lines, Xc, y, { align: 'center' });
+    needBlock(lines.length * LH);
+    doc.text(lines, ML + W / 2, y, { align: 'center' });
     y += lines.length * LH;
   };
 
@@ -78,89 +77,96 @@ function TicketModal({ venta, productos, onClose }) {
     doc.setFont('helvetica', style);
     doc.setFontSize(size);
     const lines = Array.isArray(t) ? t : doc.splitTextToSize(String(t), W);
-    need(lines.length * LH);
+    needBlock(lines.length * LH);
     doc.text(lines, x, y);
     y += lines.length * LH;
   };
 
-  const textR = (t, size = 8, style = 'normal', x = ML + W) => {
+  const textR = (t, size = 8, style = 'normal', x = RIGHT - 0.5) => {
     doc.setFont('helvetica', style);
     doc.setFontSize(size);
-    need(LH);
+    needBlock(LH);
     doc.text(String(t), x, y, { align: 'right' });
   };
 
-  // ===== ENCABEZADO (solo en la 1a página) =====
-  y = MT + 4;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
+  // ===== Encabezado (1a página) =====
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
   textC('CLIMAS GAMA', 12, 'bold');
 
-  textC(['Prol. Av. Juárez #435, Tinajas',
-         'Cuajimalpa de Morelos',
-         '05360 Ciudad de México, CDMX'], 8, 'normal');
+  textC(
+    ['Prol. Av. Juárez #435, Tinajas',
+     'Cuajimalpa de Morelos',
+     '05360 Ciudad de México, CDMX'],
+    8, 'normal'
+  );
+  hr(2);
+  y += 1;
 
   doc.setFontSize(8);
   textL(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`, 8);
   textR(`V_ID: ${venta.id}`, 8);
-  need();
+  y += 1;
 
   textL('Cliente: Público en General', 8);
   textL(`Vendedor: ${venta.nombre_vendedor}`, 8);
-
   hr(2);
-  // ===== PRODUCTOS =====
-  const xQty = ML;
-  const xUnitR = ML + W - 22; // columna precio unitario (derecha)
-  const xSubR = ML + W;       // columna subtotal (derecha)
+  y += 1;
+
+  // ===== Productos =====
+  const xQty   = ML;          // Cantidad (izq)
+  const xUnitR = RIGHT - 22;  // Etiqueta P.Unit (derecha)
+  const xUnitV = RIGHT - 10;  // Valor P.Unit (derecha)
+  const xSubR  = RIGHT - 11;  // Etiqueta Subt (derecha)
+  const xSubV  = RIGHT - 0.5; // Valor Subt (derecha absoluta)
 
   productos.forEach((p, idx) => {
-    y += 1; need();
     const descLines = doc.splitTextToSize(String(p.descripcion || ''), W);
+    const descH = descLines.length * LH;
+    const metaH = LH;                     // línea "Cant/P.Unit/Subt"
+    const sepH  = idx !== productos.length - 1 ? 1.2 : 0; // separador entre ítems
+    const blockH = descH + metaH + sepH;
 
-    // Calcular altura necesaria de este bloque
-    const blockH = (descLines.length * LH) + LH + 1.2 + 1; // desc + línea de totales + separador
-    need(blockH);
+    // Paginado por bloque (evita cortes y huecos)
+    needBlock(blockH);
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.text(descLines, ML, y);
-    y += descLines.length * LH;
+    // Descripción
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    descLines.forEach((ln, i) => {
+      doc.text(i ? ('  ' + ln) : ln, ML, y);
+      y += LH;
+    });
 
-    doc.setFont('courier', 'normal');
-    doc.setFontSize(7.5);
-    // fila de cantidades / precios
-    doc.text(`Cant:${p.cantidad}`, xQty - 1, y);
-    doc.text(`P.Unit:`, xUnitR - 10, y, { align: 'right' });
-    doc.text(money(p.precio_unitario), xUnitR + 1, y, { align: 'right' });
-    doc.text(`Subt:`, xSubR - 12, y, { align: 'right' });
-    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR , y, { align: 'right' });
+    // Línea de totales (monoespaciada)
+    doc.setFont('courier', 'normal'); doc.setFontSize(7.5);
+    doc.text(`Cant:${p.cantidad}`, xQty, y);
+    doc.text('P.Unit:', xUnitR - 10, y, { align: 'right' });
+    doc.text(money(p.precio_unitario), xUnitV - 10, y, { align: 'right' });
+    doc.text('Subt:', xSubR, y, { align: 'right' });
+    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubV, y, { align: 'right' });
+    y += LH;
 
-    y += LH; // salto tras la fila de totales
-
-    if (idx !== productos.length - 1) {
-      doc.setDrawColor(200);
-      doc.setLineWidth(0.2);
-      doc.line(ML, y, ML + W, y);
+    // Separador
+    if (sepH) {
+      doc.setDrawColor(200); doc.setLineWidth(0.2);
+      doc.line(ML, y, RIGHT, y);
       doc.setDrawColor(0);
-      y += 1.5;
+      y += sepH + 1.3;
     }
   });
 
-
-  // ===== TOTALES =====
+  
+  // ===== Totales =====
   hr(2);
-  y += 2; need(2 * LH);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
+  y += 2;
+  needBlock(2 * LH);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
   doc.text('TOTAL:', ML + 23, y);
   textR(money(venta.total), 8, 'bold');
-  y += LH ;
+  y += LH + 1;
 
-  // Total en letras
-  const parteEntera = Math.floor(venta.total || 0);
-  const centavos = Math.round((Number(venta.total || 0) - parteEntera) * 100);
-  const enLetras = `${totalEnLetras(parteEntera).toUpperCase()} PESOS ${String(centavos).padStart(2, '0')}/100 M.N.`;
+  const entero   = Math.floor(venta.total || 0);
+  const centavos = Math.round((Number(venta.total || 0) - entero) * 100);
+  const enLetras = `${totalEnLetras(entero).toUpperCase()} PESOS ${String(centavos).padStart(2, '0')}/100 M.N.`;
   textC(enLetras, 7.2, 'normal');
 
   hr(2);
@@ -171,6 +177,7 @@ function TicketModal({ venta, productos, onClose }) {
 
   doc.save(`venta_${venta.id}.pdf`);
 };
+
 
 
    return (
