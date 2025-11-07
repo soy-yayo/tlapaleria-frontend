@@ -160,8 +160,8 @@ const generarPDF = () => {
   y += 2;
   needBlock(2 * LH);
   doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-  doc.text('TOTAL:', ML + 23, y);
-  textR(money(venta.total), 8, 'bold');
+  doc.text('TOTAL:', ML + 15, y);
+  textR(money(venta.total), 8, 'bold', RIGHT- 5);
   y += LH + 1;
 
   const entero   = Math.floor(venta.total || 0);
