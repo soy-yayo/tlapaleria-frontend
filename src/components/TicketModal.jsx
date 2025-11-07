@@ -91,6 +91,7 @@ function TicketModal({ venta, productos, onClose }) {
   };
 
   // ===== ENCABEZADO (solo en la 1a página) =====
+  y = MT + 4;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   textC('CLIMAS GAMA', 12, 'bold');
@@ -99,24 +100,22 @@ function TicketModal({ venta, productos, onClose }) {
          'Cuajimalpa de Morelos',
          '05360 Ciudad de México, CDMX'], 8, 'normal');
 
-  hr(2);
-
   doc.setFontSize(8);
   textL(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`, 8);
   textR(`V_ID: ${venta.id}`, 8);
-  y += 1; need();
+  need();
 
   textL('Cliente: Público en General', 8);
   textL(`Vendedor: ${venta.nombre_vendedor}`, 8);
 
-
-
+  hr(2);
   // ===== PRODUCTOS =====
   const xQty = ML;
-  const xUnitR = ML + W - 18; // columna precio unitario (derecha)
-  const xSubR = ML + W - 5;       // columna subtotal (derecha)
+  const xUnitR = ML + W - 22; // columna precio unitario (derecha)
+  const xSubR = ML + W;       // columna subtotal (derecha)
 
   productos.forEach((p, idx) => {
+    y += 1; need();
     const descLines = doc.splitTextToSize(String(p.descripcion || ''), W);
 
     // Calcular altura necesaria de este bloque
@@ -132,10 +131,10 @@ function TicketModal({ venta, productos, onClose }) {
     doc.setFontSize(7.5);
     // fila de cantidades / precios
     doc.text(`Cant:${p.cantidad}`, xQty - 1, y);
-    doc.text(`P.Unit:`, xUnitR, y, { align: 'right' });
-    doc.text(money(p.precio_unitario), xUnitR + 3.5, y, { align: 'right' });
-    doc.text(`Subt:`, xSubR - 3, y, { align: 'right' });
-    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR + 5, y, { align: 'right' });
+    doc.text(`P.Unit:`, xUnitR - 10, y, { align: 'right' });
+    doc.text(money(p.precio_unitario), xUnitR + 1, y, { align: 'right' });
+    doc.text(`Subt:`, xSubR - 12, y, { align: 'right' });
+    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR , y, { align: 'right' });
 
     y += LH; // salto tras la fila de totales
 
@@ -144,18 +143,19 @@ function TicketModal({ venta, productos, onClose }) {
       doc.setLineWidth(0.2);
       doc.line(ML, y, ML + W, y);
       doc.setDrawColor(0);
-      y += 1.2;
+      y += 1.5;
     }
   });
 
 
   // ===== TOTALES =====
-  need(2 * LH);
+  hr(2);
+  y += 2; need(2 * LH);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('TOTAL:', ML + 15, y);
+  doc.text('TOTAL:', ML + 23, y);
   textR(money(venta.total), 8, 'bold');
-  y += LH + 1;
+  y += LH ;
 
   // Total en letras
   const parteEntera = Math.floor(venta.total || 0);
@@ -164,6 +164,7 @@ function TicketModal({ venta, productos, onClose }) {
   textC(enLetras, 7.2, 'normal');
 
   hr(2);
+  y += 1;
   textC('NO SE ACEPTAN CAMBIOS NI DEVOLUCIONES', 6.2, 'bold');
   textC('¡Gracias por su compra!', 8, 'bold');
   textC(['Si requiere factura, enviar ticket', 'y CSF al WhatsApp:', '5569700587'], 6.2);
