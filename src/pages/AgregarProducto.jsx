@@ -16,22 +16,24 @@ function AgregarProducto() {
     precio_compra: '',
     precio_venta: '',
     clave_sat: '',
-    stock_minimo: ''
+    stock_minimo: '',
+    categoria_id: ''          // <-- NUEVO
   });
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
-  const [submitting, setSubmitting] = useState(false);
   const [categorias, setCategorias] = useState([]);
-  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  const [submitting, setSubmitting] = useState(false);
+
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
   const loadedRef = useRef(false);
 
   useEffect(() => {
-    // Redirecciones por rol
+    // Guardas de rol
     if (!usuario) { navigate('/login'); return; }
     if (usuario.rol !== 'admin') { navigate('/denegado'); return; }
 
-    // Evita múltiples cargas (StrictMode)
+    // Evitar doble carga en StrictMode
     if (loadedRef.current) return;
     loadedRef.current = true;
 
@@ -39,16 +41,20 @@ function AgregarProducto() {
     (async () => {
       try {
         const token = localStorage.getItem('token');
-        const [resProv, resProd] = await Promise.all([
-          API.get('/proveedores', { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal }),
-          API.get('/productos', { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal }),
-          API.get('/categorias', { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal }),
+        const config = { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal };
+
+        const [resProv, resProd, resCat] = await Promise.all([
+          API.get('/proveedores', config),
+          API.get('/productos',   config),
+          API.get('/categorias',  config),
         ]);
+
         setProveedores(resProv.data || []);
         setProductos(resProd.data || []);
         setCategorias(resCat.data || []);
       } catch (err) {
         if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
+          console.error(err);
           toast.error('Error al cargar datos iniciales');
         }
       }
@@ -92,16 +98,21 @@ function AgregarProducto() {
       precio_venta: toNum(form.precio_venta, 0),
       clave_sat: String(form.clave_sat || '').trim(),
       stock_minimo: toInt(form.stock_minimo, 0),
+      categoria_id: toInt(form.categoria_id, 0)   // <-- NUEVO
     };
 
     // Validaciones mínimas
-    if (!payload.codigo) { toast.error('El código es obligatorio'); setSubmitting(false); return; }
-    if (!payload.descripcion) { toast.error('La descripción es obligatoria'); setSubmitting(false); return; }
-    if (!payload.proveedor_id) { toast.error('Selecciona proveedor'); setSubmitting(false); return; }
-    if (payload.stock_minimo < 0) { toast.error('El stock mínimo no puede ser negativo'); setSubmitting(false); return; }
-    if (payload.cantidad_stock < 0) { toast.error('La cantidad en stock no puede ser negativa'); setSubmitting(false); return; }
+    if (!payload.codigo)         { toast.error('El código es obligatorio'); setSubmitting(false); return; }
+    if (!payload.descripcion)    { toast.error('La descripción es obligatoria'); setSubmitting(false); return; }
+    if (!payload.proveedor_id)   { toast.error('Selecciona proveedor'); setSubmitting(false); return; }
+    if (!payload.categoria_id)   { toast.error('Selecciona categoría'); setSubmitting(false); return; }
+    if (payload.stock_minimo < 0){ toast.error('El stock mínimo no puede ser negativo'); setSubmitting(false); return; }
+    if (payload.cantidad_stock<0){ toast.error('La cantidad en stock no puede ser negativa'); setSubmitting(false); return; }
+    if (payload.precio_compra < 0|| payload.precio_venta < 0) {
+      toast.error('Precios no pueden ser negativos'); setSubmitting(false); return;
+    }
 
-    // Duplicado local (el backend también valida)
+    // Duplicado local (backend también valida)
     const existe = productos.some(p => String(p.codigo).trim() === payload.codigo);
     if (existe) { toast.error(`El código "${payload.codigo}" ya está registrado`); setSubmitting(false); return; }
 
@@ -121,6 +132,7 @@ function AgregarProducto() {
       navigate('/productos');
     } catch (err) {
       const msg = err?.response?.data?.error || err.message || 'Error al agregar producto';
+      console.error(err);
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -168,6 +180,7 @@ function AgregarProducto() {
           />
         </div>
 
+        {/* Categoría */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Categoría</label>
           <select
@@ -237,6 +250,7 @@ function AgregarProducto() {
             className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
+
         {/* Clave SAT */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Clave SAT</label>

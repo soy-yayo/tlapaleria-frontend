@@ -7,7 +7,7 @@ function EditarProducto() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
 
   const [form, setForm] = useState({
     codigo: '',
@@ -18,17 +18,23 @@ function EditarProducto() {
     proveedor_id: '',
     precio_compra: '',
     precio_venta: '',
-    imagen: '',
+    imagen: '',          // URL/Path actual
     clave_sat: '',
-    stock_minimo: ''
+    stock_minimo: '',
+    categoria_id: ''     // <-- NUEVO
   });
 
-  const [imagen, setImagen] = useState(null);
+  const [imagen, setImagen] = useState(null); // archivo nuevo
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
 
   useEffect(() => {
+    // Guardas
+    if (!usuario) {
+      navigate('/login');
+      return;
+    }
     if (usuario.rol !== 'admin') {
       navigate('/denegado');
       return;
@@ -37,70 +43,75 @@ function EditarProducto() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
 
-        const [productoRes, proveedoresRes, productosRes] = await Promise.all([
-          API.get(`/productos/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          API.get(`/proveedores`),
-          API.get(`/productos`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          API.get(`/categorias`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
+        const [productoRes, proveedoresRes, productosRes, categoriasRes] = await Promise.all([
+          API.get(`/productos/${id}`, { headers }),
+          API.get('/proveedores', { headers }),
+          API.get('/productos', { headers }),
+          API.get('/categorias', { headers })
         ]);
 
-        setForm(productoRes.data);
-        setProveedores(proveedoresRes.data);
-        setProductos(productosRes.data);
-        setCategorias(resCat.data || []);
+        // Producto a editar
+        const p = productoRes.data || {};
+        setForm(prev => ({
+          ...prev,
+          ...p,
+          categoria_id: p.categoria_id ?? '' // asegurar que tenga valor
+        }));
+
+        setProveedores(proveedoresRes.data || []);
+        setProductos(productosRes.data || []);
+        setCategorias(categoriasRes.data || []);
       } catch (err) {
+        console.error(err);
         toast.error('Error al cargar el producto');
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e) => {
-    setImagen(e.target.files[0]);
+    setImagen(e.target.files[0] || null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    };
 
-    const formData = new FormData();
-    Object.entries(form).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-    if (imagen) {
-      formData.append('imagen', imagen);
-    }
-
+    // Validar código duplicado en otro producto
     const codigoExistente = productos.find(
-      (p) => p.codigo === form.codigo && p.id !== parseInt(id)
+      (p) => p.codigo === form.codigo && String(p.id) !== String(id)
     );
-
     if (codigoExistente) {
       toast.error(`El código "${form.codigo}" ya está registrado en otro producto`);
       return;
     }
+
     try {
-      await API.put(`/productos/${id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      const formData = new FormData();
+      // Pasar todos los campos del form
+      Object.entries(form).forEach(([k, v]) => {
+        // Evita mandar "imagen" si es la URL actual, backend la mantiene con COALESCE
+        if (k === 'imagen') return;
+        formData.append(k, v ?? '');
       });
+      if (imagen) formData.append('imagen', imagen);
+
+      await API.put(`/productos/${id}`, formData, { headers });
       toast.success('Producto actualizado correctamente');
       navigate('/productos');
     } catch (err) {
+      console.error(err);
       toast.error('Error al actualizar producto');
     }
   };
@@ -126,7 +137,7 @@ function EditarProducto() {
             <input
               type="text"
               name={name}
-              value={form[name]}
+              value={form[name] ?? ''}
               onChange={handleChange}
               required
               className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -139,7 +150,7 @@ function EditarProducto() {
           <label className="block text-sm font-medium text-slate-700 mb-1">Categoría</label>
           <select
             name="categoria_id"
-            value={form.categoria_id}
+            value={form.categoria_id ?? ''}
             onChange={handleChange}
             required
             className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -156,7 +167,7 @@ function EditarProducto() {
           <label className="block text-sm font-medium text-slate-700 mb-1">Proveedor</label>
           <select
             name="proveedor_id"
-            value={form.proveedor_id}
+            value={form.proveedor_id ?? ''}
             onChange={handleChange}
             required
             className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -192,7 +203,6 @@ function EditarProducto() {
           />
         </div>
 
-        {/* Botón */}
         <button
           type="submit"
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-xl transition disabled:opacity-50"

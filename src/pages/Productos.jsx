@@ -10,12 +10,12 @@ import { saveAs } from 'file-saver';
 function Productos() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]); // para evitar error al cargar
   const [busqueda, setBusqueda] = useState('');
-  const [proveedorFiltro, setProveedorFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
   const [categoriasFiltro, setCategoriasFiltro] = useState('');
 
-  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -39,7 +39,7 @@ function Productos() {
         setCategorias(res.data || []);
       } catch (err) {
         console.error('Error al cargar categorías:', err);
-        toast.error('Debes iniciar sesión');
+        // es opcional mostrar toast aquí
       }
     };
 
@@ -55,7 +55,6 @@ function Productos() {
   }
 
   const productosFiltrados = productos.filter((p) => {
-    // const coincideProveedor = proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
     const coincideCategoria = categoriasFiltro === '' || p.nombre_categoria === categoriasFiltro;
     const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
@@ -64,7 +63,6 @@ function Productos() {
     return coincideUbicacion && coincideCategoria && coincideBusqueda;
   });
 
-  // const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort();
   const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort();
   const categoriasUnicas = [...new Set(productos.map(p => p?.nombre_categoria).filter(Boolean))].sort();
 
@@ -79,14 +77,14 @@ function Productos() {
       p.codigo,
       p.descripcion,
       p.ubicacion,
-      p.categoria,
+      (p.nombre_categoria ?? '-'),
       p.cantidad_stock,
       `$${Number(p.precio_venta ?? 0).toFixed(2)}`,
-      p.nombre_proveedor,
-      p.clave_sat || ''
+      (p.nombre_proveedor ?? '-'),
+      (p.clave_sat || '')
     ]);
     autoTable(doc, {
-      head: [['Código', 'Descripción', 'Ubicación', 'Stock', 'Precio Venta', 'Proveedor', 'Clave SAT']],
+      head: [['Código', 'Descripción', 'Ubicación', 'Categoría', 'Stock', 'Precio Venta', 'Proveedor', 'Clave SAT']],
       body: tabla,
       startY: 20,
       styles: { fontSize: 10 }
@@ -103,10 +101,10 @@ function Productos() {
       Código: p.codigo,
       Descripción: p.descripcion,
       Ubicación: p.ubicacion,
-      Categoría: p.categoria,
+      Categoría: p.nombre_categoria ?? '-',
       Stock: p.cantidad_stock,
       'Precio Venta': Number(p.precio_venta ?? 0),
-      Proveedor: p.nombre_proveedor,
+      Proveedor: p.nombre_proveedor ?? '-',
       'Clave SAT': p.clave_sat || ''
     }));
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
@@ -139,20 +137,15 @@ function Productos() {
 
       {/* Barra de filtros */}
       <div className="bg-slate-50 border rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3">
-        {/* <select
-          value={proveedorFiltro}
-          onChange={(e) => setProveedorFiltro(e.target.value)}
-          className="flex-1 rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+        <select
+          value={categoriasFiltro}
+          onChange={(e) => setCategoriasFiltro(e.target.value)}
+          className="rounded-xl border px-3 py-2"
         >
-          <option value="">Todos los proveedores</option>
-          {proveedoresUnicos.map((prov) => (
-            <option key={prov} value={prov}>{prov}</option>
-          ))}
-        </select> */}
-        <select value={categoriasFiltro} onChange={(e) => setCategoriasFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
           <option value="">Todas las categorías</option>
           {categoriasUnicas.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
         </select>
+
         <select
           value={ubicacionFiltro}
           onChange={(e) => setUbicacionFiltro(e.target.value)}
@@ -163,6 +156,7 @@ function Productos() {
             <option key={ubi} value={ubi}>{ubi}</option>
           ))}
         </select>
+
         <input
           type="text"
           placeholder="🔍 Buscar por código o descripción..."
@@ -209,16 +203,22 @@ function Productos() {
               className="bg-white border rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition"
               onClick={() => setProductoSeleccionado(p)}
             >
-              <img
-                src={p.imagen}
-                alt={p.descripcion}
-                className="w-full h-40 object-cover mb-3 rounded-lg"
-              />
+              {p.imagen && (
+                <img
+                  src={p.imagen}
+                  alt={p.descripcion}
+                  className="w-full h-40 object-cover mb-3 rounded-lg"
+                />
+              )}
               <h3 className="font-semibold text-sm mb-1">{p.descripcion}</h3>
               <p className="text-xs text-slate-500">Código: {p.codigo}</p>
+              <p className="text-xs text-slate-500">Categoría: {p.nombre_categoria ?? '-'}</p>
               <p className="text-xs text-slate-500">Stock: {p.cantidad_stock}</p>
               <p className="text-xs text-slate-500">Ubicación: {p.ubicacion}</p>
-              <p className="text-sm font-bold text-blue-600">Precio: ${Number(p.precio_venta ?? 0).toFixed(2)}</p>
+              <p className="text-sm font-bold text-blue-600">
+                Precio: ${Number(p.precio_venta ?? 0).toFixed(2)}
+              </p>
+              <p className="text-xs text-slate-500">Proveedor: {p.nombre_proveedor ?? '-'}</p>
               <p className="text-xs text-slate-500">Clave SAT: {p.clave_sat || '-'}</p>
 
               {usuario?.rol === 'admin' && (
@@ -257,11 +257,13 @@ function Productos() {
               &times;
             </button>
 
-            <img
-              src={productoSeleccionado.imagen}
-              alt={productoSeleccionado.descripcion}
-              className="w-full h-80 object-fit rounded mb-4"
-            />
+            {productoSeleccionado.imagen && (
+              <img
+                src={productoSeleccionado.imagen}
+                alt={productoSeleccionado.descripcion}
+                className="w-full h-80 object-cover rounded mb-4"
+              />
+            )}
 
             <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
 
@@ -269,13 +271,14 @@ function Productos() {
               <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
               <p><strong>Stock:</strong> {productoSeleccionado.cantidad_stock}</p>
               <p><strong>Ubicación:</strong> {productoSeleccionado.ubicacion}</p>
+              <p><strong>Categoría:</strong> {productoSeleccionado.nombre_categoria ?? '-'}</p>
               <p><strong>Precio venta:</strong> ${Number(productoSeleccionado.precio_venta ?? 0).toFixed(2)}</p>
+              <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor ?? '-'}</p>
               <p><strong>Clave SAT:</strong> {productoSeleccionado.clave_sat || '-'}</p>
 
               {usuario?.rol === 'admin' && (
                 <>
                   <p><strong>Precio compra:</strong> ${Number(productoSeleccionado.precio_compra ?? 0).toFixed(2)}</p>
-                  <p><strong>Proveedor:</strong> {productoSeleccionado.nombre_proveedor}</p>
                   <p><strong>Stock máximo:</strong> {productoSeleccionado.stock_maximo}</p>
                 </>
               )}

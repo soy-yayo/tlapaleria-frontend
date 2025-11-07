@@ -16,7 +16,7 @@ function Inventario() {
   const [stockFiltro, setStockFiltro] = useState('');
   const [categoriasFiltro, setCategoriasFiltro] = useState('');
 
-  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -26,7 +26,7 @@ function Inventario() {
           headers: { Authorization: `Bearer ${token}` }
         });
         setProductos(res.data || []);
-      } catch (err) {
+      } catch {
         toast.error('Debes iniciar sesión');
       }
     };
@@ -41,10 +41,10 @@ function Inventario() {
   }
 
   const esProveedorOculto = (nombre = '') =>
-  normalizarTexto(nombre).trim() === 'a granel';
+    normalizarTexto(nombre).trim() === 'a granel';
 
   const productosFiltrados = productos.filter((p) => {
-    if(esProveedorOculto(p?.nombre_proveedor)) return false;
+    if (esProveedorOculto(p?.nombre_proveedor)) return false;
 
     const coincideProveedor = proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
@@ -59,16 +59,32 @@ function Inventario() {
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
     const coincideBusqueda = palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
 
-    return coincideProveedor && coincideUbicacion && coincideStock && coincideBusqueda && coincideCategoria;
+    return coincideProveedor && coincideUbicacion && coincideCategoria && coincideStock && coincideBusqueda;
   });
 
-  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean).filter(n => !esProveedorOculto(n)))].sort((a, b) => a.localeCompare(b));
-  const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const proveedoresUnicos = [...new Set(
+    productos
+      .map(p => p?.nombre_proveedor)
+      .filter(Boolean)
+      .filter(n => !esProveedorOculto(n))
+  )].sort((a, b) => a.localeCompare(b));
 
-  const categoriasUnicas = [...new Set(productos.map(p => p?.nombre_categoria).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const ubicacionesUnicas = [...new Set(
+    productos.map(p => p?.ubicacion).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
 
-  const totalCompra = productosFiltrados.reduce((acc, p) => acc + (Number(p.precio_compra ?? 0) * Number(p.stock_faltante ?? 0)), 0);
-  const totalVenta = productosFiltrados.reduce((acc, p) => acc + (Number(p.precio_venta ?? 0) * Number(p.cantidad_stock ?? 0)), 0);
+  const categoriasUnicas = [...new Set(
+    productos.map(p => p?.nombre_categoria).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+
+  const totalCompra = productosFiltrados.reduce(
+    (acc, p) => acc + (Number(p.precio_compra ?? 0) * Number(p.stock_faltante ?? 0)),
+    0
+  );
+  const totalVenta = productosFiltrados.reduce(
+    (acc, p) => acc + (Number(p.precio_venta ?? 0) * Number(p.cantidad_stock ?? 0)),
+    0
+  );
 
   const exportarPDF = () => {
     if (productosFiltrados.length === 0) {
@@ -77,23 +93,29 @@ function Inventario() {
     }
     const doc = new jsPDF();
     doc.text('Inventario de productos', 14, 10);
+
     const tabla = productosFiltrados.map(p => [
       p.codigo,
       p.descripcion,
-      p.nombre_proveedor,
-      p.ubicacion,
-      p.categoria,
-      p.cantidad_stock,
-      p.stock_faltante,
+      p.nombre_proveedor ?? '-',
+      p.ubicacion ?? '-',
+      p.nombre_categoria ?? '-',
+      p.cantidad_stock ?? 0,
+      p.stock_faltante ?? 0,
       `${Number(p.precio_compra ?? 0).toFixed(2)}`,
-      `$${Number(p.precio_venta ?? 0).toFixed(2)}`,
+      `$${Number(p.precio_venta ?? 0).toFixed(2)}`
     ]);
+
     autoTable(doc, {
-      head: [['Código', 'Descripción', 'Proveedor', 'Ubicación', 'Stock', 'Stock Faltante', 'Precio Compra', 'Precio Venta']],
+      head: [[
+        'Código', 'Descripción', 'Proveedor', 'Ubicación', 'Categoría',
+        'Stock', 'Stock Faltante', 'Precio Compra', 'Precio Venta'
+      ]],
       body: tabla,
       startY: 20,
       styles: { fontSize: 10 }
     });
+
     const date = new Date();
     doc.save(`inventario_${date.toISOString().slice(0, 10)}.pdf`);
   };
@@ -106,11 +128,11 @@ function Inventario() {
     const worksheetData = productosFiltrados.map(p => ({
       Código: p.codigo,
       Descripción: p.descripcion,
-      Proveedor: p.nombre_proveedor,
-      Ubicación: p.ubicacion,
-      Categoría: p.categoria,
-      Stock: p.cantidad_stock,
-      'Stock Faltante': p.stock_faltante,
+      Proveedor: p.nombre_proveedor ?? '-',
+      Ubicación: p.ubicacion ?? '-',
+      Categoría: p.nombre_categoria ?? '-',
+      Stock: p.cantidad_stock ?? 0,
+      'Stock Faltante': p.stock_faltante ?? 0,
       'Precio Compra': Number(p.precio_compra ?? 0),
       'Precio Venta': Number(p.precio_venta ?? 0),
     }));
@@ -133,7 +155,7 @@ function Inventario() {
       });
       setProductos((prev) => prev.filter((p) => p.id !== id));
       toast.success('Producto eliminado');
-    } catch (err) {
+    } catch {
       toast.error('No se pudo eliminar el producto');
     }
   };
@@ -151,23 +173,28 @@ function Inventario() {
           onChange={(e) => setBusqueda(e.target.value)}
           className="w-full md:flex-1 rounded-xl border border-slate-300 px-4 py-2"
         />
+
         <select value={proveedorFiltro} onChange={(e) => setProveedorFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
           <option value="">Todos los proveedores</option>
           {proveedoresUnicos.map((prov) => <option key={prov} value={prov}>{prov}</option>)}
         </select>
+
         <select value={categoriasFiltro} onChange={(e) => setCategoriasFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
           <option value="">Todas las categorías</option>
           {categoriasUnicas.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
         </select>
+
         <select value={ubicacionFiltro} onChange={(e) => setUbicacionFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
           <option value="">Todas las ubicaciones</option>
           {ubicacionesUnicas.map((ubic) => <option key={ubic} value={ubic}>{ubic}</option>)}
         </select>
+
         <select value={stockFiltro} onChange={(e) => setStockFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
           <option value="">Todos</option>
           <option value="BAJO">Stock bajo</option>
           <option value="CERO">Stock = 0</option>
         </select>
+
         <div className="flex gap-2 ml-auto">
           <button
             onClick={exportarPDF}
@@ -212,7 +239,7 @@ function Inventario() {
                 <td className="text-center">
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium
-    ${Number(p.cantidad_stock) === 0
+                      ${Number(p.cantidad_stock) === 0
                         ? 'bg-rose-100 text-rose-700'
                         : Number(p.cantidad_stock) < Number(p.stock_minimo)
                           ? 'bg-amber-100 text-amber-700'
