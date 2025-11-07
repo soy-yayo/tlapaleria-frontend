@@ -109,12 +109,12 @@ function TicketModal({ venta, productos, onClose }) {
   textL('Cliente: Público en General', 8);
   textL(`Vendedor: ${venta.nombre_vendedor}`, 8);
 
-  hr(2);
+
 
   // ===== PRODUCTOS =====
   const xQty = ML;
-  const xUnitR = ML + W - 22; // columna precio unitario (derecha)
-  const xSubR = ML + W;       // columna subtotal (derecha)
+  const xUnitR = ML + W - 18; // columna precio unitario (derecha)
+  const xSubR = ML + W - 5;       // columna subtotal (derecha)
 
   productos.forEach((p, idx) => {
     const descLines = doc.splitTextToSize(String(p.descripcion || ''), W);
@@ -131,11 +131,11 @@ function TicketModal({ venta, productos, onClose }) {
     doc.setFont('courier', 'normal');
     doc.setFontSize(7.5);
     // fila de cantidades / precios
-    doc.text(`Cant:${p.cantidad}`, xQty, y);
+    doc.text(`Cant:${p.cantidad}`, xQty - 1, y);
     doc.text(`P.Unit:`, xUnitR, y, { align: 'right' });
-    doc.text(money(p.precio_unitario), xUnitR , y, { align: 'right' });
+    doc.text(money(p.precio_unitario), xUnitR + 3.5, y, { align: 'right' });
     doc.text(`Subt:`, xSubR - 3, y, { align: 'right' });
-    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR, y, { align: 'right' });
+    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR + 5, y, { align: 'right' });
 
     y += LH; // salto tras la fila de totales
 
