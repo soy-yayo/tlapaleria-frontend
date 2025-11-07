@@ -24,6 +24,7 @@ function Navbar() {
     { to: '/ventas/nueva', label: 'Nueva Venta', newTab: true },
     { to: '/ventas/historial', label: 'Historial de Ventas' },
     { to: '/proveedores', label: 'Proveedores', admin: true },
+    { to: '/categorias', label: 'Categorías', admin: true },
     { to: '/corte-caja', label: 'Corte de Caja', admin: true },
     { to: '/porcentajes-de-utilidad', label: 'Calculadora de Utilidad', admin: true },
     { to: '/cotizaciones', label: 'Cotizaciones', admin: false },
