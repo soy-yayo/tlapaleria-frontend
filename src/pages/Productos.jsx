@@ -30,8 +30,21 @@ function Productos() {
         toast.error('Debes iniciar sesión');
       }
     };
+    const fetchCategorias = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await API.get('/categorias', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCategorias(res.data || []);
+      } catch (err) {
+        console.error('Error al cargar categorías:', err);
+        toast.error('Debes iniciar sesión');
+      }
+    };
 
     fetchProductos();
+    fetchCategorias();
   }, []);
 
   function normalizarTexto(texto = '') {

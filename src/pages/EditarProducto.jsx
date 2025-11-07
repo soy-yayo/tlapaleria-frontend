@@ -114,7 +114,6 @@ function EditarProducto() {
           ['codigo', 'Código'],
           ['descripcion', 'Descripción'],
           ['ubicacion', 'Ubicación'],
-          ['categoria_id', 'Categoría'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
           ['stock_minimo', 'Stock mínimo'],
@@ -134,6 +133,23 @@ function EditarProducto() {
             />
           </div>
         ))}
+
+        {/* Categoría */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Categoría</label>
+          <select
+            name="categoria_id"
+            value={form.categoria_id}
+            onChange={handleChange}
+            required
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="">Seleccione una categoría</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
+        </div>
 
         {/* Proveedor */}
         <div>
