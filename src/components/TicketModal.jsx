@@ -132,10 +132,10 @@ function TicketModal({ venta, productos, onClose }) {
     doc.setFontSize(7.5);
     // fila de cantidades / precios
     doc.text(`Cant:${p.cantidad}`, xQty - 1, y);
-    doc.text(`P.Unit:`, xUnitR - 3.5, y, { align: 'right' });
-    doc.text(money(p.precio_unitario), xUnitR + 7, y, { align: 'right' });
-    doc.text(`Subt:`, xSubR - 6, y, { align: 'right' });
-    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR + 5, y, { align: 'right' });
+    doc.text(`P.Unit:`, xUnitR, y, { align: 'right' });
+    doc.text(money(p.precio_unitario), xUnitR + 3.5, y, { align: 'right' });
+    doc.text(`Subt:`, xSubR - 3, y, { align: 'right' });
+    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR + 2, y, { align: 'right' });
 
     y += LH; // salto tras la fila de totales
 
@@ -154,8 +154,8 @@ function TicketModal({ venta, productos, onClose }) {
   need(2 * LH);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('TOTAL:', ML + 18, y);
-  textR(money(venta.total), 11, 'bold');
+  doc.text('TOTAL:', ML + 15, y);
+  textR(money(venta.total), 8, 'bold');
   y += LH + 1;
 
   // Total en letras
