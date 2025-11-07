@@ -22,7 +22,7 @@ function AgregarProducto() {
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-
+  const [categorias, setCategorias] = useState([]);
   const usuario = JSON.parse(localStorage.getItem('usuario'));
   const loadedRef = useRef(false);
 
@@ -41,10 +41,12 @@ function AgregarProducto() {
         const token = localStorage.getItem('token');
         const [resProv, resProd] = await Promise.all([
           API.get('/proveedores', { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal }),
-          API.get('/productos',   { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal })
+          API.get('/productos', { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal }),
+          API.get('/categorias', { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal }),
         ]);
         setProveedores(resProv.data || []);
         setProductos(resProd.data || []);
+        setCategorias(resCat.data || []);
       } catch (err) {
         if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
           toast.error('Error al cargar datos iniciales');
@@ -164,6 +166,20 @@ function AgregarProducto() {
             onChange={handleChange}
             className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Categoría</label>
+          <select
+            name="categoria_id"
+            value={form.categoria_id}
+            onChange={handleChange}
+            required
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="">Seleccione una categoría</option>
+            {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+          </select>
         </div>
 
         {/* Números */}

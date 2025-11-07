@@ -14,6 +14,7 @@ function Inventario() {
   const [proveedorFiltro, setProveedorFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
   const [stockFiltro, setStockFiltro] = useState('');
+  const [categoriasFiltro, setCategoriasFiltro] = useState('');
 
   const usuario = JSON.parse(localStorage.getItem('usuario'));
 
@@ -47,6 +48,8 @@ function Inventario() {
 
     const coincideProveedor = proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
+    const coincideCategoria = categoriasFiltro === '' || p.nombre_categoria === categoriasFiltro;
+
     const coincideStock =
       stockFiltro === '' ||
       (stockFiltro === 'BAJO' && Number(p.cantidad_stock) < Number(p.stock_minimo)) ||
@@ -56,11 +59,13 @@ function Inventario() {
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
     const coincideBusqueda = palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
 
-    return coincideProveedor && coincideUbicacion && coincideStock && coincideBusqueda;
+    return coincideProveedor && coincideUbicacion && coincideStock && coincideBusqueda && coincideCategoria;
   });
 
   const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean).filter(n => !esProveedorOculto(n)))].sort((a, b) => a.localeCompare(b));
   const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
+  const categoriasUnicas = [...new Set(productos.map(p => p?.nombre_categoria).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   const totalCompra = productosFiltrados.reduce((acc, p) => acc + (Number(p.precio_compra ?? 0) * Number(p.stock_faltante ?? 0)), 0);
   const totalVenta = productosFiltrados.reduce((acc, p) => acc + (Number(p.precio_venta ?? 0) * Number(p.cantidad_stock ?? 0)), 0);
@@ -77,6 +82,7 @@ function Inventario() {
       p.descripcion,
       p.nombre_proveedor,
       p.ubicacion,
+      p.categoria,
       p.cantidad_stock,
       p.stock_faltante,
       `${Number(p.precio_compra ?? 0).toFixed(2)}`,
@@ -102,6 +108,7 @@ function Inventario() {
       Descripción: p.descripcion,
       Proveedor: p.nombre_proveedor,
       Ubicación: p.ubicacion,
+      Categoría: p.categoria,
       Stock: p.cantidad_stock,
       'Stock Faltante': p.stock_faltante,
       'Precio Compra': Number(p.precio_compra ?? 0),
@@ -148,6 +155,10 @@ function Inventario() {
           <option value="">Todos los proveedores</option>
           {proveedoresUnicos.map((prov) => <option key={prov} value={prov}>{prov}</option>)}
         </select>
+        <select value={categoriasFiltro} onChange={(e) => setCategoriasFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
+          <option value="">Todas las categorías</option>
+          {categoriasUnicas.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+        </select>
         <select value={ubicacionFiltro} onChange={(e) => setUbicacionFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
           <option value="">Todas las ubicaciones</option>
           {ubicacionesUnicas.map((ubic) => <option key={ubic} value={ubic}>{ubic}</option>)}
@@ -182,6 +193,7 @@ function Inventario() {
               <th className="text-left">Descripción</th>
               <th>Proveedor</th>
               <th>Ubicación</th>
+              <th>Categoría</th>
               <th>Stock</th>
               <th>Faltante</th>
               <th>Compra</th>
@@ -196,6 +208,7 @@ function Inventario() {
                 <td>{p.descripcion}</td>
                 <td>{p.nombre_proveedor}</td>
                 <td>{p.ubicacion}</td>
+                <td>{p.nombre_categoria || '-'}</td>
                 <td className="text-center">
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-medium

@@ -26,6 +26,7 @@ function EditarProducto() {
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
 
   useEffect(() => {
     if (usuario.rol !== 'admin') {
@@ -44,12 +45,16 @@ function EditarProducto() {
           API.get(`/proveedores`),
           API.get(`/productos`, {
             headers: { Authorization: `Bearer ${token}` }
+          }),
+          API.get(`/categorias`, {
+            headers: { Authorization: `Bearer ${token}` }
           })
         ]);
 
         setForm(productoRes.data);
         setProveedores(proveedoresRes.data);
         setProductos(productosRes.data);
+        setCategorias(resCat.data || []);
       } catch (err) {
         toast.error('Error al cargar el producto');
       }
@@ -109,6 +114,7 @@ function EditarProducto() {
           ['codigo', 'Código'],
           ['descripcion', 'Descripción'],
           ['ubicacion', 'Ubicación'],
+          ['categoria_id', 'Categoría'],
           ['stock_maximo', 'Stock máximo'],
           ['cantidad_stock', 'Cantidad en stock'],
           ['stock_minimo', 'Stock mínimo'],

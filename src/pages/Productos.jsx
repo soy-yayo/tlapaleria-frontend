@@ -13,6 +13,7 @@ function Productos() {
   const [busqueda, setBusqueda] = useState('');
   const [proveedorFiltro, setProveedorFiltro] = useState('');
   const [ubicacionFiltro, setUbicacionFiltro] = useState('');
+  const [categoriasFiltro, setCategoriasFiltro] = useState('');
 
   const usuario = JSON.parse(localStorage.getItem('usuario'));
 
@@ -41,16 +42,18 @@ function Productos() {
   }
 
   const productosFiltrados = productos.filter((p) => {
-    const coincideProveedor = proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
+    // const coincideProveedor = proveedorFiltro === '' || p.nombre_proveedor === proveedorFiltro;
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
+    const coincideCategoria = categoriasFiltro === '' || p.nombre_categoria === categoriasFiltro;
     const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
     const coincideBusqueda = palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
-    return coincideProveedor && coincideUbicacion && coincideBusqueda;
+    return coincideUbicacion && coincideCategoria && coincideBusqueda;
   });
 
-  const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort();
+  // const proveedoresUnicos = [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort();
   const ubicacionesUnicas = [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort();
+  const categoriasUnicas = [...new Set(productos.map(p => p?.nombre_categoria).filter(Boolean))].sort();
 
   const exportarPDF = () => {
     if (productosFiltrados.length === 0) {
@@ -63,6 +66,7 @@ function Productos() {
       p.codigo,
       p.descripcion,
       p.ubicacion,
+      p.categoria,
       p.cantidad_stock,
       `$${Number(p.precio_venta ?? 0).toFixed(2)}`,
       p.nombre_proveedor,
@@ -86,6 +90,7 @@ function Productos() {
       Código: p.codigo,
       Descripción: p.descripcion,
       Ubicación: p.ubicacion,
+      Categoría: p.categoria,
       Stock: p.cantidad_stock,
       'Precio Venta': Number(p.precio_venta ?? 0),
       Proveedor: p.nombre_proveedor,
@@ -121,7 +126,7 @@ function Productos() {
 
       {/* Barra de filtros */}
       <div className="bg-slate-50 border rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3">
-        <select
+        {/* <select
           value={proveedorFiltro}
           onChange={(e) => setProveedorFiltro(e.target.value)}
           className="flex-1 rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -130,6 +135,10 @@ function Productos() {
           {proveedoresUnicos.map((prov) => (
             <option key={prov} value={prov}>{prov}</option>
           ))}
+        </select> */}
+        <select value={categoriasFiltro} onChange={(e) => setCategoriasFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
+          <option value="">Todas las categorías</option>
+          {categoriasUnicas.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
         </select>
         <select
           value={ubicacionFiltro}
