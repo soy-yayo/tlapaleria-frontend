@@ -131,11 +131,11 @@ function TicketModal({ venta, productos, onClose }) {
     doc.setFont('courier', 'normal');
     doc.setFontSize(7.5);
     // fila de cantidades / precios
-    doc.text(`Cant:${p.cantidad}`, xQty - 1, y);
+    doc.text(`Cant:${p.cantidad}`, xQty, y);
     doc.text(`P.Unit:`, xUnitR, y, { align: 'right' });
-    doc.text(money(p.precio_unitario), xUnitR + 3.5, y, { align: 'right' });
+    doc.text(money(p.precio_unitario), xUnitR , y, { align: 'right' });
     doc.text(`Subt:`, xSubR - 3, y, { align: 'right' });
-    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR + 2, y, { align: 'right' });
+    doc.text(money(Number(p.cantidad) * Number(p.precio_unitario)), xSubR, y, { align: 'right' });
 
     y += LH; // salto tras la fila de totales
 
@@ -148,7 +148,6 @@ function TicketModal({ venta, productos, onClose }) {
     }
   });
 
-  hr(2);
 
   // ===== TOTALES =====
   need(2 * LH);
