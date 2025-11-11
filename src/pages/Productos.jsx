@@ -57,7 +57,7 @@ function Productos() {
   const productosFiltrados = productos.filter((p) => {
     const coincideUbicacion = ubicacionFiltro === '' || p.ubicacion === ubicacionFiltro;
     const coincideCategoria = categoriasFiltro === '' || p.nombre_categoria === categoriasFiltro;
-    const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
+    const textoProducto = normalizarTexto(`${p.codigo} ${p.codigo_barras} ${p.descripcion}`);
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
     const coincideBusqueda = palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
     return coincideUbicacion && coincideCategoria && coincideBusqueda;

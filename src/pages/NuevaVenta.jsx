@@ -54,7 +54,7 @@ function NuevaVenta() {
   };
 
   const productosFiltrados = productos.filter((p) => {
-    const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
+    const textoProducto = normalizarTexto(`${p.codigo} ${p.codigo_barras} ${p.descripcion}`);
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
     return palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
   });
