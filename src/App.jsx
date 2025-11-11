@@ -40,7 +40,7 @@ function LayoutPrivado() {
 
           {/* Inventario */}
           <Route path="inventario" element={<Inventario />} />
-          <Route path="entradas" element={<EntradasMercancia />} />
+          <Route path="inventario/entradas" element={<EntradasMercancia />} />
 
           {/* Ventas */}
           <Route path="ventas/nueva" element={<NuevaVenta />} />
