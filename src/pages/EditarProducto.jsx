@@ -18,10 +18,11 @@ function EditarProducto() {
     proveedor_id: '',
     precio_compra: '',
     precio_venta: '',
-    imagen: '',          // URL/Path actual
+    imagen: '',
     clave_sat: '',
     stock_minimo: '',
-    categoria_id: ''     // <-- NUEVO
+    categoria_id: '',
+    codigo_barras: ''
   });
 
   const [imagen, setImagen] = useState(null); // archivo nuevo
@@ -123,6 +124,7 @@ function EditarProducto() {
       <form onSubmit={handleSubmit} className="grid gap-5">
         {[
           ['codigo', 'Código'],
+          ['codigo_barras', 'Código de barras'],
           ['descripcion', 'Descripción'],
           ['ubicacion', 'Ubicación'],
           ['stock_maximo', 'Stock máximo'],

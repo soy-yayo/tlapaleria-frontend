@@ -45,6 +45,14 @@ function NuevaVenta() {
       .toLowerCase();
   }
 
+  const findByCodeOrBarcode = (code) => {
+    const n = normalizarTexto(code);
+    return productos.find(p =>
+      normalizarTexto(p.codigo) === n ||
+      normalizarTexto(p.codigo_barras || '') === n
+    );
+  };
+
   const productosFiltrados = productos.filter((p) => {
     const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
@@ -144,11 +152,9 @@ function NuevaVenta() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' || e.key === 'Tab') {
                 e.preventDefault();
-                const productoEncontrado = productos.find(
-                  (p) => normalizarTexto(p.codigo) === normalizarTexto(busqueda)
-                );
+                const productoEncontrado = findByCodeOrBarcode(busqueda);
                 if (productoEncontrado) {
                   agregarAlTicket(productoEncontrado);
                 } else {
@@ -249,10 +255,9 @@ function NuevaVenta() {
                 key={fp}
                 type="button"
                 className={`px-3 py-2 rounded border text-sm font-medium transition
-                  ${
-                    formaPago === fp
-                      ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                  ${formaPago === fp
+                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                   }
                 `}
                 onClick={() => setFormaPago(fp)}

@@ -17,7 +17,8 @@ function AgregarProducto() {
     precio_venta: '',
     clave_sat: '',
     stock_minimo: '',
-    categoria_id: ''          // <-- NUEVO
+    categoria_id: '',
+    codigo_barras: '',
   });
   const [imagen, setImagen] = useState(null);
   const [proveedores, setProveedores] = useState([]);
@@ -45,8 +46,8 @@ function AgregarProducto() {
 
         const [resProv, resProd, resCat] = await Promise.all([
           API.get('/proveedores', config),
-          API.get('/productos',   config),
-          API.get('/categorias',  config),
+          API.get('/productos', config),
+          API.get('/categorias', config),
         ]);
 
         setProveedores(resProv.data || []);
@@ -102,13 +103,13 @@ function AgregarProducto() {
     };
 
     // Validaciones mínimas
-    if (!payload.codigo)         { toast.error('El código es obligatorio'); setSubmitting(false); return; }
-    if (!payload.descripcion)    { toast.error('La descripción es obligatoria'); setSubmitting(false); return; }
-    if (!payload.proveedor_id)   { toast.error('Selecciona proveedor'); setSubmitting(false); return; }
-    if (!payload.categoria_id)   { toast.error('Selecciona categoría'); setSubmitting(false); return; }
-    if (payload.stock_minimo < 0){ toast.error('El stock mínimo no puede ser negativo'); setSubmitting(false); return; }
-    if (payload.cantidad_stock<0){ toast.error('La cantidad en stock no puede ser negativa'); setSubmitting(false); return; }
-    if (payload.precio_compra < 0|| payload.precio_venta < 0) {
+    if (!payload.codigo) { toast.error('El código es obligatorio'); setSubmitting(false); return; }
+    if (!payload.descripcion) { toast.error('La descripción es obligatoria'); setSubmitting(false); return; }
+    if (!payload.proveedor_id) { toast.error('Selecciona proveedor'); setSubmitting(false); return; }
+    if (!payload.categoria_id) { toast.error('Selecciona categoría'); setSubmitting(false); return; }
+    if (payload.stock_minimo < 0) { toast.error('El stock mínimo no puede ser negativo'); setSubmitting(false); return; }
+    if (payload.cantidad_stock < 0) { toast.error('La cantidad en stock no puede ser negativa'); setSubmitting(false); return; }
+    if (payload.precio_compra < 0 || payload.precio_venta < 0) {
       toast.error('Precios no pueden ser negativos'); setSubmitting(false); return;
     }
 
@@ -156,7 +157,16 @@ function AgregarProducto() {
             className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
           />
         </div>
-
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Código de barras</label>
+          <input
+            type="text"
+            name="codigo_barras"
+            value={form.codigo_barras}
+            onChange={handleChange}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
           <input
