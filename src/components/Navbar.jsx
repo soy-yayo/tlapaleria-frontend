@@ -19,6 +19,7 @@ function Navbar() {
     { to: '/productos', label: 'Inicio' },
     { to: '/productos/nuevo', label: 'Agregar producto', admin: true },
     { to: '/inventario', label: 'Inventario', admin: true },
+    { to: '/entradas', label: 'Entradas de Mercancía', admin: true },
     { to: '/usuarios', label: 'Usuarios', admin: true },
     { to: '/usuarios/nuevo', label: 'Registrar usuario', admin: true },
     { to: '/ventas/nueva', label: 'Nueva Venta', newTab: true },

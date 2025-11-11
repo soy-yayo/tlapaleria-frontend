@@ -19,6 +19,7 @@ import RegistrarUsuario from './pages/RegistrarUsuario';
 import Cotizaciones from './pages/Cotizaciones';
 import NuevaCotizacion from './pages/NuevaCotizacion';
 import Categorias from './pages/Categorias';
+import EntradasMercancia from './pages/EntradasMercancia';
 
 // Components
 import NavBar from './components/Navbar';
@@ -39,6 +40,7 @@ function LayoutPrivado() {
 
           {/* Inventario */}
           <Route path="inventario" element={<Inventario />} />
+          <Route path="entradas" element={<EntradasMercancia />} />
 
           {/* Ventas */}
           <Route path="ventas/nueva" element={<NuevaVenta />} />
