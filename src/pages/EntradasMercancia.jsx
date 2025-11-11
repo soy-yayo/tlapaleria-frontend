@@ -1,19 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import API from '../services/api';
 import { toast } from 'react-toastify';
 
 function normalizar(texto = '') {
-  return String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
 export default function EntradasMercancia() {
   const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState('');
-  const [proveedorFiltro, setProveedorFiltro] = useState('');
-  const [categoriaFiltro, setCategoriaFiltro] = useState('');
-  const [ubicacionFiltro, setUbicacionFiltro] = useState('');
-  const [entradas, setEntradas] = useState({}); // { [idProducto]: cantidadAAgregar }
+  const [entradas, setEntradas] = useState({});
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef(null);
 
   const token = localStorage.getItem('token');
 
@@ -32,37 +30,64 @@ export default function EntradasMercancia() {
     const n = Number(val);
     setEntradas(prev => ({ ...prev, [id]: Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0 }));
   };
-
+  const inc = (id) => setEntradas(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+  const dec = (id) => setEntradas(prev => ({ ...prev, [id]: Math.max(0, (prev[id] || 0) - 1) }));
+  const quitar = (id) => setEntradas(prev => { const c = { ...prev }; delete c[id]; return c; });
   const limpiar = () => setEntradas({});
 
-  const productosFiltrados = useMemo(() => {
-    return (productos || []).filter(p => {
-      const coincideProveedor = !proveedorFiltro || p.nombre_proveedor === proveedorFiltro;
-      const coincideCategoria = !categoriaFiltro || p.nombre_categoria === categoriaFiltro;
-      const coincideUbicacion = !ubicacionFiltro || p.ubicacion === ubicacionFiltro;
-      const texto = normalizar(`${p.codigo} ${p.codigo_barras || ''} ${p.descripcion}`);
-      const okBusqueda = !busqueda || normalizar(busqueda).split(/\s+/).filter(Boolean).every(w => texto.includes(w));
-      return coincideProveedor && coincideCategoria && coincideUbicacion && okBusqueda;
-    });
-  }, [productos, proveedorFiltro, categoriaFiltro, ubicacionFiltro, busqueda]);
+  const agregarPorBusqueda = () => {
+    const q = normalizar(busqueda);
+    if (!q) return;
 
-  const proveedores = useMemo(() =>
-    [...new Set(productos.map(p => p?.nombre_proveedor).filter(Boolean))].sort((a,b)=>a.localeCompare(b))
-  , [productos]);
+    let prod = productos.find(p =>
+      normalizar(String(p.codigo)) === q ||
+      normalizar(String(p.codigo_barras || '')) === q
+    );
 
-  const categorias = useMemo(() =>
-    [...new Set(productos.map(p => p?.nombre_categoria).filter(Boolean))].sort((a,b)=>a.localeCompare(b))
-  , [productos]);
+    if (!prod) {
+      const matches = productos.filter(p => {
+        const texto = normalizar(`${p.codigo} ${p.codigo_barras || ''} ${p.descripcion}`);
+        return texto.includes(q);
+      });
+      if (matches.length === 1) prod = matches[0];
+      else if (matches.length > 1) {
+        toast.info(`Hay ${matches.length} coincidencias, escanea/ingresa el código exacto.`);
+        return;
+      }
+    }
 
-  const ubicaciones = useMemo(() =>
-    [...new Set(productos.map(p => p?.ubicacion).filter(Boolean))].sort((a,b)=>a.localeCompare(b))
-  , [productos]);
+    if (!prod) {
+      toast.error('Producto no encontrado');
+      return;
+    }
+
+    setEntradas(prev => ({ ...prev, [prod.id]: (prev[prod.id] || 0) + 1 }));
+    setBusqueda('');
+    inputRef.current?.focus();
+  };
+
+  const seleccion = useMemo(() => {
+    const ids = Object.keys(entradas).map(n => Number(n)).filter(Boolean);
+    const mapa = new Map(productos.map(p => [p.id, p]));
+    return ids
+      .map(id => {
+        const p = mapa.get(id);
+        if (!p) return null;
+        const add = Number(entradas[id] || 0);
+        return {
+          ...p,
+          entrada: add,
+          nuevo_stock: Number(p.cantidad_stock) + (Number.isFinite(add) ? add : 0)
+        };
+      })
+      .filter(Boolean);
+  }, [productos, entradas]);
 
   const payload = useMemo(() =>
-    Object.entries(entradas)
-      .map(([id, cantidad]) => ({ id: Number(id), cantidad: Number(cantidad) }))
+    seleccion
+      .map(p => ({ id: p.id, cantidad: p.entrada }))
       .filter(x => x.cantidad > 0)
-  , [entradas]);
+  , [seleccion]);
 
   const totalItems = payload.reduce((a, b) => a + b.cantidad, 0);
 
@@ -77,7 +102,6 @@ export default function EntradasMercancia() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Actualizar vista local
       setProductos(prev =>
         prev.map(p => {
           const add = payload.find(x => x.id === p.id)?.cantidad || 0;
@@ -98,27 +122,28 @@ export default function EntradasMercancia() {
     <div className="page py-6">
       <h1 className="text-2xl font-bold mb-4">📥 Recepción de mercancía</h1>
 
-      {/* Filtros */}
-      <div className="bg-white border rounded-xl p-4 mb-5 flex flex-col md:flex-row gap-3 items-center shadow-sm">
+      {/* Buscador (Enter agrega) */}
+      <div className="bg-white border rounded-xl p-4 mb-4 flex gap-3 items-center shadow-sm">
         <input
+          ref={inputRef}
           type="text"
-          placeholder="🔍 Buscar por código, código de barras o descripción"
+          placeholder="Escanea o escribe código/código de barras y presiona Enter"
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
-          className="w-full md:flex-1 rounded-xl border px-4 py-2"
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              agregarPorBusqueda();
+            }
+          }}
+          className="w-full rounded-xl border px-4 py-2"
         />
-        <select value={proveedorFiltro} onChange={e => setProveedorFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
-          <option value="">Todos los proveedores</option>
-          {proveedores.map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
-        <select value={categoriaFiltro} onChange={e => setCategoriaFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
-          <option value="">Todas las categorías</option>
-          {categorias.map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
-        <select value={ubicacionFiltro} onChange={e => setUbicacionFiltro(e.target.value)} className="rounded-xl border px-3 py-2">
-          <option value="">Todas las ubicaciones</option>
-          {ubicaciones.map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
+        <button
+          onClick={agregarPorBusqueda}
+          className="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50"
+        >
+          Agregar
+        </button>
       </div>
 
       {/* Acciones */}
@@ -140,7 +165,7 @@ export default function EntradasMercancia() {
         </button>
       </div>
 
-      {/* Tabla editable */}
+      {/* SOLO los productos seleccionados */}
       <div className="overflow-x-auto bg-white border rounded-xl shadow">
         <table className="w-full border-separate border-spacing-0">
           <thead className="sticky top-0 bg-slate-100 text-slate-600 text-sm">
@@ -148,52 +173,59 @@ export default function EntradasMercancia() {
               <th className="py-3 px-4 text-left">Código</th>
               <th className="text-left">Descripción</th>
               <th className="text-left">Proveedor</th>
-              <th className="text-left">Categoría</th>
               <th className="text-center">Stock actual</th>
               <th className="text-center">Entrada</th>
               <th className="text-center">Nuevo stock</th>
+              <th className="text-center">Quitar</th>
             </tr>
           </thead>
           <tbody className="text-sm">
-            {productosFiltrados.map(p => {
-              const entrada = Number(entradas[p.id] || 0);
-              const nuevo = Number(p.cantidad_stock) + (Number.isFinite(entrada) ? entrada : 0);
-              return (
-                <tr key={p.id} className="hover:bg-slate-50 border-b last:border-0">
-                  <td className="px-4 py-2">{p.codigo}</td>
-                  <td className="py-2">{p.descripcion}</td>
-                  <td>{p.nombre_proveedor || '-'}</td>
-                  <td>{p.nombre_categoria || '-'}</td>
-                  <td className="text-center">{p.cantidad_stock}</td>
-                  <td className="text-center">
-                    <div className="inline-flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setEntrada(p.id, (entrada || 0) - 1)}
-                        className="px-2 py-1 rounded border hover:bg-slate-100"
-                        title="−1"
-                      >−</button>
-                      <input
-                        type="number"
-                        min="0" step="1"
-                        value={entrada}
-                        onChange={e => setEntrada(p.id, e.target.value)}
-                        className="w-20 text-center rounded border px-2 py-1"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setEntrada(p.id, (entrada || 0) + 1)}
-                        className="px-2 py-1 rounded border hover:bg-slate-100"
-                        title="+1"
-                      >+</button>
-                    </div>
-                  </td>
-                  <td className="text-center font-semibold">{nuevo}</td>
-                </tr>
-              );
-            })}
-            {productosFiltrados.length === 0 && (
-              <tr><td colSpan="7" className="p-4 text-center text-slate-400">Sin resultados</td></tr>
+            {seleccion.map(p => (
+              <tr key={p.id} className="hover:bg-slate-50 border-b last:border-0">
+                <td className="px-4 py-2">{p.codigo}</td>
+                <td className="py-2">{p.descripcion}</td>
+                <td>{p.nombre_proveedor || '-'}</td>
+                <td className="text-center">{p.cantidad_stock}</td>
+                <td className="text-center">
+                  <div className="inline-flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => dec(p.id)}
+                      className="px-2 py-1 rounded border hover:bg-slate-100"
+                      title="−1"
+                    >−</button>
+                    <input
+                      type="number"
+                      min="0" step="1"
+                      value={p.entrada}
+                      onChange={e => setEntrada(p.id, e.target.value)}
+                      className="w-20 text-center rounded border px-2 py-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => inc(p.id)}
+                      className="px-2 py-1 rounded border hover:bg-slate-100"
+                      title="+1"
+                    >+</button>
+                  </div>
+                </td>
+                <td className="text-center font-semibold">{p.nuevo_stock}</td>
+                <td className="text-center">
+                  <button
+                    onClick={() => quitar(p.id)}
+                    className="px-2 py-1 rounded border hover:bg-rose-50 text-rose-600"
+                  >
+                    Quitar
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {seleccion.length === 0 && (
+              <tr>
+                <td colSpan="7" className="p-4 text-center text-slate-400">
+                  Escanea o escribe un código y presiona Enter para agregar productos.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
