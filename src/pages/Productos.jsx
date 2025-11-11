@@ -171,22 +171,20 @@ function Productos() {
         <button
           onClick={exportarPDF}
           disabled={productosFiltrados.length === 0}
-          className={`px-4 py-2 rounded-xl text-white text-sm font-medium transition ${
-            productosFiltrados.length === 0
-              ? 'bg-slate-300 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+          className={`px-4 py-2 rounded-xl text-white text-sm font-medium transition ${productosFiltrados.length === 0
+            ? 'bg-slate-300 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700'
+            }`}
         >
           Exportar PDF
         </button>
         <button
           onClick={exportarExcel}
           disabled={productosFiltrados.length === 0}
-          className={`px-4 py-2 rounded-xl text-white text-sm font-medium transition ${
-            productosFiltrados.length === 0
-              ? 'bg-slate-300 cursor-not-allowed'
-              : 'bg-green-600 hover:bg-green-700'
-          }`}
+          className={`px-4 py-2 rounded-xl text-white text-sm font-medium transition ${productosFiltrados.length === 0
+            ? 'bg-slate-300 cursor-not-allowed'
+            : 'bg-green-600 hover:bg-green-700'
+            }`}
         >
           Exportar Excel
         </button>
@@ -203,12 +201,25 @@ function Productos() {
               className="bg-white border rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition"
               onClick={() => setProductoSeleccionado(p)}
             >
-              {p.imagen && (
-                <img
-                  src={p.imagen}
-                  alt={p.descripcion}
-                  className="w-full h-40 object-cover mb-3 rounded-lg"
-                />
+              {p.imagen ? (
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-slate-100">
+                  <img
+                    src={p.imagen}
+                    alt={p.descripcion}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/no-image.png'; // pon un placeholder en /public
+                    }}
+                    draggable="false"
+                  />
+                </div>
+              ) : (
+                <div className="w-full aspect-[4/3] rounded-lg bg-slate-100 grid place-items-center text-slate-400 text-xs">
+                  Sin imagen
+                </div>
               )}
               <h3 className="font-semibold text-sm mb-1">{p.descripcion}</h3>
               <p className="text-xs text-slate-500">Código: {p.codigo}</p>
@@ -257,12 +268,25 @@ function Productos() {
               &times;
             </button>
 
-            {productoSeleccionado.imagen && (
-              <img
-                src={productoSeleccionado.imagen}
-                alt={productoSeleccionado.descripcion}
-                className="w-full h-80 object-cover rounded mb-4"
-              />
+            {productoSeleccionado.imagen ? (
+              <div className="w-full max-h-[70vh] grid place-items-center overflow-hidden rounded-lg bg-slate-100 mb-4">
+                <img
+                  src={productoSeleccionado.imagen}
+                  alt={productoSeleccionado.descripcion}
+                  className="max-h-[70vh] w-auto object-contain"
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/no-image.png';
+                  }}
+                  draggable="false"
+                />
+              </div>
+            ) : (
+              <div className="w-full h-[40vh] grid place-items-center rounded-lg bg-slate-100 mb-4 text-slate-400">
+                Sin imagen
+              </div>
             )}
 
             <h2 className="text-xl font-bold mb-2">{productoSeleccionado.descripcion}</h2>
