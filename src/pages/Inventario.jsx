@@ -55,7 +55,7 @@ function Inventario() {
       (stockFiltro === 'BAJO' && Number(p.cantidad_stock) < Number(p.stock_minimo)) ||
       (stockFiltro === 'CERO' && Number(p.cantidad_stock) === 0);
 
-    const textoProducto = normalizarTexto(`${p.codigo} ${p.descripcion}`);
+    const textoProducto = normalizarTexto(`${p.codigo} ${p.codigo_barras} ${p.descripcion}`);
     const palabras = normalizarTexto(busqueda).split(/\s+/).filter(Boolean);
     const coincideBusqueda = palabras.length === 0 || palabras.every((palabra) => textoProducto.includes(palabra));
 
