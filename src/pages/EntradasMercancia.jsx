@@ -176,6 +176,8 @@ export default function EntradasMercancia() {
               <th className="text-center">Stock actual</th>
               <th className="text-center">Entrada</th>
               <th className="text-center">Nuevo stock</th>
+              <th className="text-center">Precio compra</th>
+              <th className="text-center">Precio venta</th>
               <th className="text-center">Quitar</th>
             </tr>
           </thead>
@@ -201,6 +203,7 @@ export default function EntradasMercancia() {
                       onChange={e => setEntrada(p.id, e.target.value)}
                       className="w-20 text-center rounded border px-2 py-1"
                     />
+
                     <button
                       type="button"
                       onClick={() => inc(p.id)}
@@ -210,6 +213,8 @@ export default function EntradasMercancia() {
                   </div>
                 </td>
                 <td className="text-center font-semibold">{p.nuevo_stock}</td>
+                <td className="text-center">${Number(p.precio_compra).toFixed(2)}</td>
+                <td className="text-center">${Number(p.precio_venta).toFixed(2)}</td>
                 <td className="text-center">
                   <button
                     onClick={() => quitar(p.id)}
