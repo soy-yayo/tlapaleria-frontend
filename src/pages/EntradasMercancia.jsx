@@ -10,6 +10,7 @@ export default function EntradasMercancia() {
   const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [entradas, setEntradas] = useState({});
+  const [precios, setPrecios] = useState({}); // Estado para precios editados
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
@@ -30,10 +31,28 @@ export default function EntradasMercancia() {
     const n = Number(val);
     setEntradas(prev => ({ ...prev, [id]: Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0 }));
   };
+
+  const setPrecio = (id, tipo, val) => {
+    const n = Number(val);
+    setPrecios(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [tipo]: Number.isFinite(n) ? Math.max(0, n) : 0
+      }
+    }));
+  };
+
   const inc = (id) => setEntradas(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
   const dec = (id) => setEntradas(prev => ({ ...prev, [id]: Math.max(0, (prev[id] || 0) - 1) }));
-  const quitar = (id) => setEntradas(prev => { const c = { ...prev }; delete c[id]; return c; });
-  const limpiar = () => setEntradas({});
+  const quitar = (id) => {
+    setEntradas(prev => { const c = { ...prev }; delete c[id]; return c; });
+    setPrecios(prev => { const c = { ...prev }; delete c[id]; return c; });
+  };
+  const limpiar = () => {
+    setEntradas({});
+    setPrecios({});
+  };
 
   const agregarPorBusqueda = () => {
     const q = normalizar(busqueda);
@@ -74,20 +93,28 @@ export default function EntradasMercancia() {
         const p = mapa.get(id);
         if (!p) return null;
         const add = Number(entradas[id] || 0);
+        const precioEditado = precios[id] || {};
         return {
           ...p,
           entrada: add,
-          nuevo_stock: Number(p.cantidad_stock) + (Number.isFinite(add) ? add : 0)
+          nuevo_stock: Number(p.cantidad_stock) + (Number.isFinite(add) ? add : 0),
+          precio_compra: precioEditado.precio_compra !== undefined ? precioEditado.precio_compra : Number(p.precio_compra),
+          precio_venta: precioEditado.precio_venta !== undefined ? precioEditado.precio_venta : Number(p.precio_venta)
         };
       })
       .filter(Boolean);
-  }, [productos, entradas]);
+  }, [productos, entradas, precios]);
 
   const payload = useMemo(() =>
     seleccion
-      .map(p => ({ id: p.id, cantidad: p.entrada }))
+      .map(p => ({
+        id: p.id,
+        cantidad: p.entrada,
+        precio_compra: p.precio_compra,
+        precio_venta: p.precio_venta
+      }))
       .filter(x => x.cantidad > 0)
-  , [seleccion]);
+    , [seleccion]);
 
   const totalItems = payload.reduce((a, b) => a + b.cantidad, 0);
 
@@ -104,8 +131,14 @@ export default function EntradasMercancia() {
 
       setProductos(prev =>
         prev.map(p => {
-          const add = payload.find(x => x.id === p.id)?.cantidad || 0;
-          return add ? { ...p, cantidad_stock: Number(p.cantidad_stock) + add } : p;
+          const entrada = payload.find(x => x.id === p.id);
+          if (!entrada) return p;
+          return {
+            ...p,
+            cantidad_stock: Number(p.cantidad_stock) + entrada.cantidad,
+            precio_compra: entrada.precio_compra,
+            precio_venta: entrada.precio_venta
+          };
         })
       );
       limpiar();
@@ -188,6 +221,7 @@ export default function EntradasMercancia() {
                 <td className="py-2">{p.descripcion}</td>
                 <td>{p.nombre_proveedor || '-'}</td>
                 <td className="text-center">{p.cantidad_stock}</td>
+
                 <td className="text-center">
                   <div className="inline-flex items-center gap-2">
                     <button
@@ -213,8 +247,26 @@ export default function EntradasMercancia() {
                   </div>
                 </td>
                 <td className="text-center font-semibold">{p.nuevo_stock}</td>
-                <td className="text-center">${Number(p.precio_compra).toFixed(2)}</td>
-                <td className="text-center">${Number(p.precio_venta).toFixed(2)}</td>
+                <td className="text-center">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={p.precio_compra}
+                    onChange={e => setPrecio(p.id, 'precio_compra', e.target.value)}
+                    className="w-24 text-center rounded border px-2 py-1"
+                  />
+                </td>
+                <td className="text-center">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={p.precio_venta}
+                    onChange={e => setPrecio(p.id, 'precio_venta', e.target.value)}
+                    className="w-24 text-center rounded border px-2 py-1"
+                  />
+                </td>
                 <td className="text-center">
                   <button
                     onClick={() => quitar(p.id)}
@@ -227,7 +279,7 @@ export default function EntradasMercancia() {
             ))}
             {seleccion.length === 0 && (
               <tr>
-                <td colSpan="7" className="p-4 text-center text-slate-400">
+                <td colSpan="9" className="p-4 text-center text-slate-400">
                   Escanea o escribe un código y presiona Enter para agregar productos.
                 </td>
               </tr>
